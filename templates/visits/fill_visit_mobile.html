@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ visit.visit_type.name }} - {{ visit.outlet.name }} - Datum{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Sticky footer для мобильных */
+@media (max-width: 991px) {
+    #mobileFooter {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1030;
+        background: white;
+        border-top: 2px solid #dee2e6;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        padding: 1rem;
+    }
+
+    body {
+        padding-bottom: 100px; /* Space for sticky footer */
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Прогресс-бар заполнения -->
+<div class="progress mb-3" style="height: 8px;">
+    <div class="progress-bar bg-success" role="progressbar" id="formProgress" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="mb-2 mb-md-0">
+                <h1 class="h4 mb-1">
+                    <i class="bi bi-clipboard-check"></i> {{ visit.visit_type.name }}
+                </h1>
+                <p class="text-muted mb-0 small">
+                    <i class="bi bi-shop"></i> {{ visit.outlet.name }}
+                </p>
+            </div>
+            <div>
+                <span class="badge bg-{% if visit.status == 'planned' %}primary{% elif visit.status == 'in_progress' %}warning{% else %}success{% endif %}">
+                    {{ visit.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="visitForm">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-12">
+            <!-- Аккордеон для мобильной версии -->
+            <div class="accordion" id="formAccordion">
+
+                {% if form_template and form_template.fields_schema %}
+                <!-- Секция: Форма -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormFields" aria-expanded="true">
+                            <i class="bi bi-file-text me-2"></i> Заполнение формы
+                            <span class="ms-auto me-2 badge bg-primary" id="formFieldsProgress">0/{{ form_template.fields_schema|length }}</span>
+                        </button>
+                    </h2>
+                    <div id="collapseFormFields" class="accordion-collapse collapse show" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            {% for field in form_template.fields_schema %}
+                            <div class="mb-4 form-field">
+                                <label class="form-label fw-bold">
+                                    {{ field.label }}
+                                    {% if field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+
+                                {% if field.field_type == 'text' %}
+                                    <input type="text" name="{{ field.field_name }}" class="form-control" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}>
+
+                                {% elif field.field_type == 'number' %}
+                                    <input type="number" name="{{ field.field_name }}" class="form-control" placeholder="{{ field.placeholder|default:'' }}" step="any" {% if field.required %}required{% endif %}>
+
+                                {% elif field.field_type == 'boolean' %}
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" name="{{ field.field_name }}" class="form-check-input" style="width: 3em; height: 1.5em;" id="{{ field.field_name }}">
+                                        <label class="form-check-label" for="{{ field.field_name }}">Да</label>
+                                    </div>
+
+                                {% elif field.field_type == 'choice' %}
+                                    <select name="{{ field.field_name }}" class="form-select" {% if field.required %}required{% endif %}>
+                                        <option value="">Выберите...</option>
+                                        {% for option in field.options %}
+                                        <option value="{{ option }}">{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                {% elif field.field_type == 'date' %}
+                                    <input type="date" name="{{ field.field_name }}" class="form-control" {% if field.required %}required{% endif %}>
+
+                                {% elif field.field_type == 'textarea' %}
+                                    <textarea name="{{ field.field_name }}" class="form-control" rows="3" placeholder="{{ field.placeholder|default:'' }}" {% if field.required %}required{% endif %}></textarea>
+
+                                {% elif field.field_type == 'image' %}
+                                    <input type="file" name="{{ field.field_name }}" class="form-control" accept="image/*" capture="environment" multiple id="photos_{{ field.field_name }}" onchange="previewPhotos(this, 'preview_{{ field.field_name }}')" {% if field.required %}required{% endif %}>
+                                    <small class="form-text text-muted">
+                                        <i class="bi bi-camera"></i> Можно загрузить несколько фото
+                                    </small>
+                                    <div id="preview_{{ field.field_name }}" class="row mt-2"></div>
+                                {% endif %}
+
+                                {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if coefficients %}
+                <!-- Секция: Коэффициенты -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCoefficients">
+                            <i class="bi bi-graph-up me-2"></i> Коэффициенты
+                            <span class="ms-auto me-2 badge bg-info" id="coefficientsProgress">0/{{ coefficients|length }}</span>
+                        </button>
+                    </h2>
+                    <div id="collapseCoefficients" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            {% for coef in coefficients %}
+                            <div class="mb-4 pb-3 border-bottom form-field">
+                                <label class="form-label fw-bold">
+                                    {{ coef.name }}
+                                    {% if coef.unit %}<span class="text-muted">({{ coef.unit }})</span>{% endif %}
+                                </label>
+
+                                {% if coef.value_type == 'numeric' %}
+                                    <input type="number" name="coef_{{ coef.id }}" class="form-control" step="any" placeholder="Введите значение">
+
+                                {% elif coef.value_type == 'boolean' %}
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" name="coef_{{ coef.id }}" class="form-check-input" style="width: 3em; height: 1.5em;">
+                                    </div>
+
+                                {% elif coef.value_type == 'text' %}
+                                    <textarea name="coef_{{ coef.id }}" class="form-control" rows="2" placeholder="Введите значение"></textarea>
+                                {% endif %}
+
+                                {% if coef.description %}
+                                <small class="form-text text-muted">{{ coef.description }}</small>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Секция: Комментарии -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotes">
+                            <i class="bi bi-chat-left-text me-2"></i> Комментарии
+                        </button>
+                    </h2>
+                    <div id="collapseNotes" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            <textarea name="notes" class="form-control" rows="4" placeholder="Дополнительные комментарии к визиту">{{ visit.notes }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция: Информация -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfo">
+                            <i class="bi bi-info-circle me-2"></i> Информация
+                        </button>
+                    </h2>
+                    <div id="collapseInfo" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            <small class="text-muted">
+                                <div class="mb-1"><strong>Создано:</strong> {{ visit.created_at|date:"d.m.Y H:i" }}</div>
+                                {% if visit.start_date %}
+                                <div class="mb-1"><strong>Начато:</strong> {{ visit.start_date|date:"d.m.Y H:i" }}</div>
+                                {% endif %}
+                                {% if visit.end_date %}
+                                <div class="mb-1"><strong>Завершено:</strong> {{ visit.end_date|date:"d.m.Y H:i" }}</div>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky footer для мобильных устройств -->
+    <div id="mobileFooter" class="d-lg-none">
+        <div class="d-grid gap-2">
+            {% if visit.status == 'planned' %}
+                <button type="submit" name="start_visit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-play-fill"></i> Начать визит
+                </button>
+            {% elif visit.status == 'in_progress' %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-info flex-fill">
+                        <i class="bi bi-save"></i> Сохранить
+                    </button>
+                    <button type="submit" name="complete_visit" class="btn btn-success flex-fill">
+                        <i class="bi bi-check-circle-fill"></i> Завершить
+                    </button>
+                </div>
+            {% else %}
+                <button type="submit" class="btn btn-secondary btn-lg" disabled>
+                    <i class="bi bi-check-circle"></i> Визит завершён
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Кнопки для desktop -->
+    <div class="d-none d-lg-block mt-4">
+        <div class="d-flex gap-2">
+            {% if visit.status == 'planned' %}
+                <button type="submit" name="start_visit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-play-fill"></i> Начать визит
+                </button>
+            {% elif visit.status == 'in_progress' %}
+                <button type="submit" class="btn btn-info btn-lg">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+                <button type="submit" name="complete_visit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle-fill"></i> Завершить визит
+                </button>
+            {% else %}
+                <button type="submit" class="btn btn-secondary btn-lg" disabled>
+                    <i class="bi bi-check-circle"></i> Визит завершён
+                </button>
+            {% endif %}
+            <a href="{% url 'visits:my_visits' %}" class="btn btn-outline-secondary btn-lg ms-auto">
+                <i class="bi bi-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+</form>
+
+{% block extra_js %}
+<script src="/static/js/autosave.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализировать автосохранение
+    const autosave = new FormAutosave('#visitForm', {
+        storageKey: 'visit_{{ visit.id }}_autosave',
+        interval: 30000,
+        excludeFields: ['csrfmiddlewaretoken']
+    });
+
+    // Прогресс-бар заполнения
+    function updateProgress() {
+        const allFields = document.querySelectorAll('.form-field input, .form-field select, .form-field textarea');
+        const filledFields = Array.from(allFields).filter(field => {
+            if (field.type === 'checkbox') return field.checked;
+            if (field.type === 'file') return field.files && field.files.length > 0;
+            return field.value.trim() !== '';
+        });
+
+        const progress = allFields.length > 0 ? Math.round((filledFields.length / allFields.length) * 100) : 0;
+        const progressBar = document.getElementById('formProgress');
+        progressBar.style.width = progress + '%';
+        progressBar.setAttribute('aria-valuenow', progress);
+        progressBar.textContent = progress + '%';
+
+        if (progress === 100) {
+            progressBar.classList.remove('bg-success');
+            progressBar.classList.add('bg-success');
+        }
+    }
+
+    // Обновлять прогресс при изменении полей
+    document.querySelectorAll('.form-field input, .form-field select, .form-field textarea').forEach(field => {
+        field.addEventListener('input', updateProgress);
+        field.addEventListener('change', updateProgress);
+    });
+
+    // Начальное обновление прогресса
+    updateProgress();
+});
+
+// Функция превью фото
+function previewPhotos(input, previewId) {
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = '';
+
+    if (!input.files || input.files.length === 0) return;
+
+    Array.from(input.files).forEach((file, index) => {
+        if (file.size > 10 * 1024 * 1024) {
+            alert(`Файл ${file.name} слишком большой. Максимум 10MB`);
+            return;
+        }
+
+        compressImage(file, (compressedBlob) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-4 mb-2';
+                col.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                        <div class="card-body p-2">
+                            <small class="text-success d-block">${formatFileSize(compressedBlob.size)}</small>
+                        </div>
+                    </div>
+                `;
+                preview.appendChild(col);
+            };
+            reader.readAsDataURL(compressedBlob);
+        });
+    });
+}
+
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            const maxSize = 1920;
+            if (width > height && width > maxSize) {
+                height = (height * maxSize) / width;
+                width = maxSize;
+            } else if (height > maxSize) {
+                width = (width * maxSize) / height;
+                height = maxSize;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(callback, 'image/jpeg', 0.8);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+</script>
+{% endblock %}
+{% endblock %}

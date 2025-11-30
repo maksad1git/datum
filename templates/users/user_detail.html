@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.get_full_name|default:object.username }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-person-circle"></i> {{ object.get_full_name|default:object.username }}
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'users:user_update' object.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'users:user_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'users:user_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4 text-center">
+            <div class="card-body">
+                {% if object.avatar %}
+                    <img src="{{ object.avatar.url }}" class="rounded-circle mb-3" width="150" height="150" alt="{{ object.username }}">
+                {% else %}
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px;">
+                        <i class="bi bi-person-circle" style="font-size: 5rem; color: #ccc;"></i>
+                    </div>
+                {% endif %}
+                <h5 class="card-title">{{ object.get_full_name|default:object.username }}</h5>
+                <p class="text-muted">@{{ object.username }}</p>
+                {% if object.role %}
+                    <span class="badge bg-primary">{{ object.role }}</span>
+                {% endif %}
+                {% if object.status == 'active' %}
+                    <span class="badge bg-success">Активен</span>
+                {% elif object.status == 'suspended' %}
+                    <span class="badge bg-warning">Приостановлен</span>
+                {% else %}
+                    <span class="badge bg-secondary">Неактивен</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Имя пользователя:</dt>
+                    <dd class="col-sm-8">{{ object.username }}</dd>
+
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8">{{ object.email }}</dd>
+
+                    <dt class="col-sm-4">Имя:</dt>
+                    <dd class="col-sm-8">{{ object.first_name|default:"-" }}</dd>
+
+                    <dt class="col-sm-4">Фамилия:</dt>
+                    <dd class="col-sm-8">{{ object.last_name|default:"-" }}</dd>
+
+                    <dt class="col-sm-4">Телефон:</dt>
+                    <dd class="col-sm-8">{{ object.phone|default:"-" }}</dd>
+
+                    <dt class="col-sm-4">Роль:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.role %}
+                            <a href="{% url 'users:role_detail' object.role.pk %}">{{ object.role }}</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Статус:</dt>
+                    <dd class="col-sm-8">{{ object.get_status_display }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Права доступа</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Активный аккаунт:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.is_active %}
+                            <span class="badge bg-success">Да</span>
+                        {% else %}
+                            <span class="badge bg-danger">Нет</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Сотрудник:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.is_staff %}
+                            <span class="badge bg-success">Да</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Нет</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Суперпользователь:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.is_superuser %}
+                            <span class="badge bg-danger">Да</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Нет</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Последний вход:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.last_login %}
+                            {{ object.last_login|date:"d.m.Y H:i" }}
+                        {% else %}
+                            Никогда
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Дата регистрации:</dt>
+                    <dd class="col-sm-8">{{ object.date_joined|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

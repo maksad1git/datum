@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Шаблоны отчетов - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-file-earmark-text"></i> Шаблоны отчетов
+        </h1>
+        <p class="text-muted">Управление шаблонами отчетов</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'analytics:reporttemplate_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать шаблон
+        </a>
+    </div>
+</div>
+
+{% if object_list %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Тип</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for template in object_list %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'analytics:reporttemplate_detail' template.pk %}">
+                                {{ template.name }}
+                            </a>
+                        </td>
+                        <td>{{ template.code }}</td>
+                        <td>{{ template.get_report_type_display }}</td>
+                        <td>
+                            {% if template.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'analytics:reporttemplate_detail' template.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'analytics:reporttemplate_update' template.pk %}" class="btn btn-outline-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'analytics:reporttemplate_delete' template.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> Нет шаблонов отчетов. <a href="{% url 'analytics:reporttemplate_create' %}">Создать первый шаблон</a>
+</div>
+{% endif %}
+{% endblock %}

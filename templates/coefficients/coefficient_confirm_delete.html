@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление коэффициента - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'coefficients:coefficient_list' %}">Коэффициенты</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'coefficients:coefficient_detail' object.pk %}">{{ object.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Удаление</li>
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <h1>Удаление коэффициента</h1>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Подтверждение удаления</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning" role="alert">
+            <strong>Внимание!</strong> Вы уверены, что хотите удалить коэффициент?
+        </div>
+
+        <h5>Информация об объекте:</h5>
+        <dl class="row">
+            <dt class="col-sm-3">Название:</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>
+
+            <dt class="col-sm-3">Код:</dt>
+            <dd class="col-sm-9"><code>{{ object.code }}</code></dd>
+
+            <dt class="col-sm-3">Тип данных:</dt>
+            <dd class="col-sm-9">{{ object.get_data_type_display }}</dd>
+
+            <dt class="col-sm-3">Тип значения:</dt>
+            <dd class="col-sm-9">{{ object.get_value_type_display }}</dd>
+
+            <dt class="col-sm-3">Единица измерения:</dt>
+            <dd class="col-sm-9">{{ object.unit|default:"-" }}</dd>
+        </dl>
+
+        {% if object.metrics.exists or object.observations.exists %}
+        <div class="alert alert-danger mt-3" role="alert">
+            <strong>Связанные объекты:</strong>
+            <ul class="mb-0">
+                {% if object.metrics.exists %}
+                <li>Используется в {{ object.metrics.count }} метрик(ах)!</li>
+                {% endif %}
+                {% if object.observations.exists %}
+                <li>Имеет {{ object.observations.count }} наблюдений, которые также будут удалены!</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'coefficients:coefficient_detail' object.pk %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Да, удалить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

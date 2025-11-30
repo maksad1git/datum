@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактирование{% else %}Создание{% endif %} атрибута - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-tag"></i>
+            {% if object %}Редактирование: {{ object.name }}{% else %}Создать атрибут{% endif %}
+        </h1>
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="row">
+        <!-- Левая панель -->
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Основные параметры</h5>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">{{ form.name.label }} *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">{{ form.code.label }} *</label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">{{ form.code.errors.0 }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Уникальный код</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">{{ form.group.label }}</label>
+                            {{ form.group }}
+                            {% if form.group.errors %}
+                            <div class="invalid-feedback d-block">{{ form.group.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">{{ form.data_type.label }} *</label>
+                            {{ form.data_type }}
+                            {% if form.data_type.errors %}
+                            <div class="invalid-feedback d-block">{{ form.data_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_required }}
+                                <label class="form-check-label" for="{{ form.is_required.id_for_label }}">
+                                    {{ form.is_required.label }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_filterable }}
+                                <label class="form-check-label" for="{{ form.is_filterable.id_for_label }}">
+                                    {{ form.is_filterable }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_searchable }}
+                                <label class="form-check-label" for="{{ form.is_searchable.id_for_label }}">
+                                    {{ form.is_searchable.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3" id="numeric-settings" style="display: none;">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Настройки числовых значений</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.min_value.label }}</label>
+                            {{ form.min_value }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.max_value.label }}</label>
+                            {{ form.max_value }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">{{ form.unit.label }}</label>
+                            {{ form.unit }}
+                            <small class="form-text text-muted">г, мм, карат</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3" id="text-settings" style="display: none;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Настройки текста</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.max_length.label }}</label>
+                        {{ form.max_length }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.placeholder.label }}</label>
+                        {{ form.placeholder }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3" id="choice-settings" style="display: none;">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Варианты выбора</h5>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">{{ form.choices.label }}</label>
+                    {{ form.choices }}
+                    {% if form.choices.errors %}
+                    <div class="invalid-feedback d-block">{{ form.choices.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-text">
+                        Формат JSON: ["Вариант 1", "Вариант 2", "Вариант 3"]
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Дополнительно</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.order.label }}</label>
+                            {{ form.order }}
+                            <small class="form-text text-muted">Порядок отображения</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch mt-4">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    {{ form.is_active.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.help_text.label }}</label>
+                        {{ form.help_text }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle"></i> Сохранить
+                </button>
+                <a href="{% url 'catalog:attributedefinition_list' %}" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+            </div>
+        </div>
+
+        <!-- Правая панель -->
+        <div class="col-lg-4">
+            <div class="card bg-light sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Справка</h5>
+                </div>
+                <div class="card-body">
+                    <h6><i class="bi bi-lightbulb"></i> Типы атрибутов</h6>
+                    <ul class="small">
+                        <li><strong>Текст</strong> - строковое значение</li>
+                        <li><strong>Число</strong> - целое число</li>
+                        <li><strong>Десятичное</strong> - число с дробной частью</li>
+                        <li><strong>Да/Нет</strong> - логическое значение</li>
+                        <li><strong>Выбор</strong> - один из вариантов</li>
+                        <li><strong>Дата</strong> - календарная дата</li>
+                    </ul>
+
+                    <hr>
+
+                    <h6><i class="bi bi-box"></i> Примеры</h6>
+                    <p class="small"><strong>Проба:</strong> Число, единица "проба"</p>
+                    <p class="small"><strong>Тип камня:</strong> Выбор из списка</p>
+                    <p class="small"><strong>Вес:</strong> Десятичное, единица "г"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dataTypeSelect = document.querySelector('[name="data_type"]');
+    const numericSettings = document.getElementById('numeric-settings');
+    const textSettings = document.getElementById('text-settings');
+    const choiceSettings = document.getElementById('choice-settings');
+
+    function updateFieldVisibility() {
+        const dataType = dataTypeSelect.value;
+
+        // Hide all
+        numericSettings.style.display = 'none';
+        textSettings.style.display = 'none';
+        choiceSettings.style.display = 'none';
+
+        // Show relevant
+        if (dataType === 'integer' || dataType === 'decimal') {
+            numericSettings.style.display = 'block';
+        } else if (dataType === 'text') {
+            textSettings.style.display = 'block';
+        } else if (dataType === 'choice' || dataType === 'multi_choice') {
+            choiceSettings.style.display = 'block';
+        }
+    }
+
+    dataTypeSelect.addEventListener('change', updateFieldVisibility);
+    updateFieldVisibility(); // Initial call
+});
+</script>
+{% endblock %}

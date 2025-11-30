@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "name": "Макаронные изделия",
+    "code": "pasta",
+    "description": "Категории и атрибуты для макаронных изделий: спагетти, пенне, фузилли и другие",
+    "icon": "egg",
+    "version": "1.0"
+  },
+  "categories": [
+    {
+      "name": "Макаронные изделия",
+      "code": "pasta",
+      "parent": null
+    },
+    {
+      "name": "Длинные макароны",
+      "code": "long_pasta",
+      "parent": "pasta"
+    },
+    {
+      "name": "Короткие макароны",
+      "code": "short_pasta",
+      "parent": "pasta"
+    },
+    {
+      "name": "Фигурные макароны",
+      "code": "shaped_pasta",
+      "parent": "pasta"
+    }
+  ],
+  "attribute_groups": [
+    {
+      "name": "Основные характеристики",
+      "code": "main",
+      "category": "pasta",
+      "order": 1
+    },
+    {
+      "name": "Состав",
+      "code": "composition",
+      "category": "pasta",
+      "order": 2
+    },
+    {
+      "name": "Упаковка",
+      "code": "packaging",
+      "category": "pasta",
+      "order": 3
+    }
+  ],
+  "attributes": [
+    {
+      "name": "Форма",
+      "code": "shape",
+      "group": "main",
+      "data_type": "choice",
+      "is_required": true,
+      "is_filterable": true,
+      "choices": [
+        "Спагетти",
+        "Лапша",
+        "Рожки",
+        "Пенне",
+        "Фузилли",
+        "Фарфалле",
+        "Тальятелле",
+        "Лазанья",
+        "Каннеллони"
+      ],
+      "order": 1
+    },
+    {
+      "name": "Тип муки",
+      "code": "flour_type",
+      "group": "composition",
+      "data_type": "choice",
+      "is_required": true,
+      "is_filterable": true,
+      "choices": [
+        "Пшеничная (твёрдых сортов)",
+        "Пшеничная (мягких сортов)",
+        "Цельнозерновая",
+        "Гречневая",
+        "Рисовая",
+        "Кукурузная"
+      ],
+      "order": 1
+    },
+    {
+      "name": "Длина",
+      "code": "length",
+      "group": "main",
+      "data_type": "decimal",
+      "is_required": false,
+      "is_filterable": false,
+      "unit": "см",
+      "min_value": 0,
+      "max_value": 100,
+      "placeholder": "Длина макарон",
+      "order": 2
+    },
+    {
+      "name": "Толщина",
+      "code": "thickness",
+      "group": "main",
+      "data_type": "decimal",
+      "is_required": false,
+      "is_filterable": false,
+      "unit": "мм",
+      "min_value": 0,
+      "max_value": 20,
+      "placeholder": "Толщина",
+      "order": 3
+    },
+    {
+      "name": "Цвет",
+      "code": "color",
+      "group": "main",
+      "data_type": "choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Натуральный",
+        "Зелёный (шпинат)",
+        "Красный (томат)",
+        "Бордовый (свекла)"
+      ],
+      "order": 4
+    },
+    {
+      "name": "Состав",
+      "code": "ingredients",
+      "group": "composition",
+      "data_type": "text",
+      "is_required": false,
+      "is_filterable": false,
+      "max_length": 500,
+      "placeholder": "Перечислите ингредиенты",
+      "order": 2
+    },
+    {
+      "name": "Яичные",
+      "code": "contains_eggs",
+      "group": "composition",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 3
+    },
+    {
+      "name": "Время варки",
+      "code": "cooking_time",
+      "group": "main",
+      "data_type": "integer",
+      "is_required": false,
+      "is_filterable": false,
+      "unit": "мин",
+      "min_value": 1,
+      "max_value": 60,
+      "placeholder": "Время в минутах",
+      "order": 5
+    },
+    {
+      "name": "Масса упаковки",
+      "code": "package_weight",
+      "group": "packaging",
+      "data_type": "integer",
+      "is_required": true,
+      "is_filterable": true,
+      "unit": "г",
+      "min_value": 50,
+      "placeholder": "Вес в граммах",
+      "order": 1
+    },
+    {
+      "name": "Тип упаковки",
+      "code": "package_type",
+      "group": "packaging",
+      "data_type": "choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Пластиковый пакет",
+        "Картонная коробка",
+        "Вакуумная упаковка"
+      ],
+      "order": 2
+    },
+    {
+      "name": "Срок годности",
+      "code": "shelf_life",
+      "group": "packaging",
+      "data_type": "integer",
+      "is_required": false,
+      "is_filterable": false,
+      "unit": "мес",
+      "min_value": 1,
+      "max_value": 36,
+      "placeholder": "Срок в месяцах",
+      "order": 3
+    }
+  ]
+}

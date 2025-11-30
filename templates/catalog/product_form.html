@@ -1,0 +1,535 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактирование{% else %}Создание{% endif %} товара - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:product_list' %}">Товары</a></li>
+        {% if object %}
+        <li class="breadcrumb-item"><a href="{% url 'catalog:product_detail' object.pk %}">{{ object.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Редактирование</li>
+        {% else %}
+        <li class="breadcrumb-item active" aria-current="page">Создание</li>
+        {% endif %}
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <h1>{% if object %}Редактирование{% else %}Создание{% endif %} товара</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        {{ form.name.label }}
+                        {% if form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ form.sku_code.label }}</label>
+                    {{ form.sku_code }}
+                    {% if form.sku_code.errors %}
+                    <div class="invalid-feedback d-block">{{ form.sku_code.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        {{ form.brand.label }}
+                        {% if form.brand.field.required %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+                    {{ form.brand }}
+                    {% if form.brand.errors %}
+                    <div class="invalid-feedback d-block">{{ form.brand.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        {{ form.category.label }}
+                        {% if form.category.field.required %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <div class="invalid-feedback d-block">{{ form.category.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.price.label }}</label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                    <div class="invalid-feedback d-block">{{ form.price.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.weight.label }}</label>
+                    {{ form.weight }}
+                    {% if form.weight.errors %}
+                    <div class="invalid-feedback d-block">{{ form.weight.errors.0 }}</div>
+                    {% endif %}
+                    {% if form.weight.help_text %}
+                    <small class="form-text text-muted">{{ form.weight.help_text }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.status.label }}</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                    <div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.description.label }}</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Inline Attribute Formset -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tags"></i> Характеристики товара
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="category-attributes-container">
+                        <div class="alert alert-info" id="no-category-message">
+                            <i class="bi bi-info-circle"></i>
+                            Выберите категорию товара чтобы увидеть доступные характеристики
+                        </div>
+                        <div id="attributes-list" style="display: none;">
+                            <!-- Динамически загружаемые атрибуты -->
+                        </div>
+                    </div>
+
+                    {% if object %}
+                    {{ attribute_formset.management_form }}
+
+                    {% if attribute_formset.non_form_errors %}
+                    <div class="alert alert-danger">
+                        {{ attribute_formset.non_form_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div id="attribute-formset">
+                        {% for form in attribute_formset %}
+                        <div class="attribute-form border rounded p-3 mb-3" data-form-index="{{ forloop.counter0 }}">
+                            {{ form.id }}
+
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label">Атрибут</label>
+                                    {{ form.attribute }}
+                                    {% if form.attribute.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.attribute.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-5 mb-2">
+                                    <label class="form-label">Значение</label>
+                                    <div class="value-fields">
+                                        {{ form.value_text }}
+                                        {{ form.value_integer }}
+                                        {{ form.value_decimal }}
+                                        {{ form.value_boolean }}
+                                        {{ form.value_date }}
+                                        {{ form.value_choice }}
+                                        {{ form.value_multi_choice }}
+                                        {{ form.value_file }}
+                                    </div>
+                                    {% if form.value_text.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.value_text.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-1 mb-2 d-flex align-items-end">
+                                    {% if form.instance.pk %}
+                                    {{ form.DELETE }}
+                                    <label for="{{ form.DELETE.id_for_label }}" class="form-check-label text-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </label>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-attribute">
+                        <i class="bi bi-plus-circle"></i> Добавить характеристику
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{% if object %}{% url 'catalog:product_detail' object.pk %}{% else %}{% url 'catalog:product_list' %}{% endif %}"
+                   class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 500;
+    }
+    .attribute-form {
+        background-color: #f8f9fa;
+    }
+    .value-fields > * {
+        display: none;
+    }
+    .value-fields > *:not([type="hidden"]) {
+        display: block !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ======= CATEGORY ATTRIBUTES LOADER =======
+    const categorySelect = document.querySelector('[name="category"]');
+    const attributesListContainer = document.getElementById('attributes-list');
+    const noCategoryMessage = document.getElementById('no-category-message');
+
+    // При выборе категории загрузить её атрибуты
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            const categoryId = this.value;
+            if (categoryId) {
+                loadCategoryAttributes(categoryId);
+            } else {
+                attributesListContainer.style.display = 'none';
+                noCategoryMessage.style.display = 'block';
+            }
+        });
+
+        // Если категория уже выбрана при загрузке страницы
+        if (categorySelect.value) {
+            loadCategoryAttributes(categorySelect.value);
+        }
+    }
+
+    function loadCategoryAttributes(categoryId) {
+        fetch(`/catalog/ajax/category/${categoryId}/attributes/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.attributes.length > 0) {
+                    renderAttributes(data.attributes);
+                    attributesListContainer.style.display = 'block';
+                    noCategoryMessage.style.display = 'none';
+                } else {
+                    attributesListContainer.innerHTML = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Для этой категории пока нет характеристик</div>';
+                    attributesListContainer.style.display = 'block';
+                    noCategoryMessage.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading attributes:', error);
+                attributesListContainer.innerHTML = '<div class="alert alert-danger">Ошибка загрузки характеристик</div>';
+                attributesListContainer.style.display = 'block';
+            });
+    }
+
+    function renderAttributes(attributes) {
+        let html = '';
+        let currentGroup = null;
+
+        attributes.forEach(attr => {
+            // Группировка по группам атрибутов
+            if (currentGroup !== attr.group_name) {
+                if (currentGroup !== null) {
+                    html += '</div></div>';
+                }
+                currentGroup = attr.group_name;
+                html += `
+                    <div class="mb-4">
+                        <h6 class="text-primary"><i class="bi bi-folder"></i> ${attr.group_name}</h6>
+                        <div class="ps-3">
+                `;
+            }
+
+            // Создать поле в зависимости от типа
+            html += `<div class="mb-3">`;
+            html += `<label class="form-label fw-bold">${attr.name}`;
+            if (attr.is_required) html += ' <span class="text-danger">*</span>';
+            html += `</label>`;
+
+            const fieldName = `attr_${attr.id}`;
+            const required = attr.is_required ? 'required' : '';
+
+            if (attr.data_type === 'text') {
+                html += `<input type="text" name="${fieldName}" class="form-control" placeholder="${attr.help_text || ''}" ${required}>`;
+            } else if (attr.data_type === 'integer') {
+                html += `<input type="number" name="${fieldName}" class="form-control" step="1" ${required}>`;
+                if (attr.unit) html += `<small class="text-muted">${attr.unit}</small>`;
+            } else if (attr.data_type === 'decimal') {
+                html += `<input type="number" name="${fieldName}" class="form-control" step="0.01" ${required}>`;
+                if (attr.unit) html += `<small class="text-muted">${attr.unit}</small>`;
+            } else if (attr.data_type === 'boolean') {
+                html += `
+                    <div class="form-check form-switch">
+                        <input type="checkbox" name="${fieldName}" class="form-check-input" style="width: 3em; height: 1.5em;">
+                    </div>`;
+            } else if (attr.data_type === 'date') {
+                html += `<input type="date" name="${fieldName}" class="form-control" ${required}>`;
+            } else if (attr.data_type === 'choice') {
+                html += `<select name="${fieldName}" class="form-select" ${required}>`;
+                html += `<option value="">Выберите...</option>`;
+                if (attr.choices && attr.choices.length > 0) {
+                    attr.choices.forEach(choice => {
+                        html += `<option value="${choice}">${choice}</option>`;
+                    });
+                }
+                html += `</select>`;
+            } else if (attr.data_type === 'multi_choice') {
+                // Для типов вставок используем расширенный интерфейс
+                if (attr.code === 'stone_types') {
+                    html += `
+                        <div class="stones-container" data-field-name="${fieldName}" data-choices='${JSON.stringify(attr.choices || [])}'>
+                            <div class="stones-list mb-2"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary add-stone-btn">
+                                <i class="bi bi-plus-circle"></i> Добавить камень
+                            </button>
+                            <input type="hidden" name="${fieldName}" class="stones-data">
+                        </div>
+                    `;
+                } else {
+                    // Обычный multi_choice с чекбоксами
+                    html += `<div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">`;
+                    if (attr.choices && attr.choices.length > 0) {
+                        attr.choices.forEach((choice, index) => {
+                            const checkboxId = `${fieldName}_${index}`;
+                            html += `
+                                <div class="form-check">
+                                    <input type="checkbox" name="${fieldName}" value="${choice}"
+                                           class="form-check-input" id="${checkboxId}">
+                                    <label class="form-check-label" for="${checkboxId}">
+                                        ${choice}
+                                    </label>
+                                </div>`;
+                        });
+                    } else {
+                        html += `<small class="text-muted">Нет доступных вариантов</small>`;
+                    }
+                    html += `</div>`;
+                }
+            }
+
+            if (attr.help_text) {
+                html += `<div class="form-text mt-2">${attr.help_text}</div>`;
+            }
+            html += `</div>`;
+        });
+
+        if (currentGroup !== null) {
+            html += '</div></div>';
+        }
+
+        attributesListContainer.innerHTML = html;
+
+        // Инициализировать контейнеры для камней
+        initializeStonesContainers();
+    }
+
+    // ======= STONES CONTAINERS INITIALIZATION =======
+    function initializeStonesContainers() {
+        document.querySelectorAll('.stones-container').forEach(container => {
+            const list = container.querySelector('.stones-list');
+            const hiddenInput = container.querySelector('.stones-data');
+            const addBtn = container.querySelector('.add-stone-btn');
+            const choices = JSON.parse(container.dataset.choices || '[]');
+
+            let stones = [];
+
+            function updateHiddenInput() {
+                hiddenInput.value = JSON.stringify(stones);
+            }
+
+            function renderStones() {
+                list.innerHTML = '';
+                stones.forEach((stone, index) => {
+                    const stoneDiv = document.createElement('div');
+                    stoneDiv.className = 'row mb-2 align-items-center border-bottom pb-2';
+
+                    const optionsHtml = choices.map(c =>
+                        '<option value="' + c + '"' + (stone.type === c ? ' selected' : '') + '>' + c + '</option>'
+                    ).join('');
+
+                    stoneDiv.innerHTML =
+                        '<div class="col-md-5">' +
+                            '<select class="form-select form-select-sm stone-type" data-index="' + index + '">' +
+                                '<option value="">Выберите камень...</option>' +
+                                optionsHtml +
+                            '</select>' +
+                        '</div>' +
+                        '<div class="col-md-3">' +
+                            '<input type="number" class="form-control form-control-sm stone-quantity"' +
+                                   ' data-index="' + index + '" placeholder="Кол-во" min="0" step="1"' +
+                                   ' value="' + (stone.quantity || '') + '">' +
+                        '</div>' +
+                        '<div class="col-md-3">' +
+                            '<input type="number" class="form-control form-control-sm stone-carat"' +
+                                   ' data-index="' + index + '" placeholder="Караты" min="0" step="0.01"' +
+                                   ' value="' + (stone.carat || '') + '">' +
+                        '</div>' +
+                        '<div class="col-md-1">' +
+                            '<button type="button" class="btn btn-sm btn-danger remove-stone-btn" data-index="' + index + '">' +
+                                '<i class="bi bi-trash"></i>' +
+                            '</button>' +
+                        '</div>';
+
+                    list.appendChild(stoneDiv);
+                });
+
+                // Attach event listeners
+                list.querySelectorAll('.stone-type').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const idx = parseInt(this.dataset.index);
+                        stones[idx].type = this.value;
+                        updateHiddenInput();
+                    });
+                });
+
+                list.querySelectorAll('.stone-quantity').forEach(input => {
+                    input.addEventListener('input', function() {
+                        const idx = parseInt(this.dataset.index);
+                        stones[idx].quantity = this.value ? parseFloat(this.value) : null;
+                        updateHiddenInput();
+                    });
+                });
+
+                list.querySelectorAll('.stone-carat').forEach(input => {
+                    input.addEventListener('input', function() {
+                        const idx = parseInt(this.dataset.index);
+                        stones[idx].carat = this.value ? parseFloat(this.value) : null;
+                        updateHiddenInput();
+                    });
+                });
+
+                list.querySelectorAll('.remove-stone-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const idx = parseInt(this.dataset.index);
+                        stones.splice(idx, 1);
+                        renderStones();
+                        updateHiddenInput();
+                    });
+                });
+            }
+
+            addBtn.addEventListener('click', function() {
+                stones.push({ type: '', quantity: null, carat: null });
+                renderStones();
+            });
+
+            // Initialize with one empty stone
+            stones.push({ type: '', quantity: null, carat: null });
+            renderStones();
+        });
+    }
+
+    // ======= FORMSET MANAGEMENT (FOR EDIT MODE) =======
+    const formsetContainer = document.getElementById('attribute-formset');
+    const addButton = document.getElementById('add-attribute');
+    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+
+    if (addButton && formsetContainer) {
+        addButton.addEventListener('click', function() {
+            const formCount = parseInt(totalForms.value);
+            const emptyForm = formsetContainer.querySelector('.attribute-form:last-child');
+
+            if (emptyForm) {
+                const newForm = emptyForm.cloneNode(true);
+                const formRegex = RegExp(`attribute_values-(\\d+)-`, 'g');
+
+                newForm.innerHTML = newForm.innerHTML.replace(formRegex, `attribute_values-${formCount}-`);
+                newForm.setAttribute('data-form-index', formCount);
+
+                // Clear values
+                newForm.querySelectorAll('input, select, textarea').forEach(input => {
+                    if (input.type !== 'hidden') {
+                        input.value = '';
+                    }
+                });
+
+                formsetContainer.appendChild(newForm);
+                totalForms.value = formCount + 1;
+            }
+        });
+    }
+
+    // Dynamic field visibility based on attribute type
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('[name$="-attribute"]')) {
+            const attributeId = e.target.value;
+            if (attributeId) {
+                // AJAX call to get attribute data type
+                fetch(`/api/ajax/attribute-info/${attributeId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const formDiv = e.target.closest('.attribute-form');
+                        const valueFields = formDiv.querySelector('.value-fields');
+
+                        // Hide all fields
+                        valueFields.querySelectorAll('[name^="attribute_values"]').forEach(field => {
+                            if (!field.name.includes('-attribute') && !field.name.includes('-id')) {
+                                field.style.display = 'none';
+                                field.removeAttribute('required');
+                            }
+                        });
+
+                        // Show relevant field
+                        const fieldName = `value_${data.data_type}`;
+                        const targetField = valueFields.querySelector(`[name$="-${fieldName}"]`);
+                        if (targetField) {
+                            targetField.style.display = 'block';
+                            if (data.is_required) {
+                                targetField.setAttribute('required', 'required');
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

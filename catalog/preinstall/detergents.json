@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "name": "Стиральные порошки",
+    "code": "detergents",
+    "description": "Категории и атрибуты для стиральных порошков и моющих средств",
+    "icon": "droplet",
+    "version": "1.0"
+  },
+  "categories": [
+    {
+      "name": "Бытовая химия",
+      "code": "household_chemicals",
+      "parent": null
+    },
+    {
+      "name": "Стиральные порошки",
+      "code": "laundry_detergents",
+      "parent": "household_chemicals"
+    },
+    {
+      "name": "Жидкие средства для стирки",
+      "code": "liquid_detergents",
+      "parent": "household_chemicals"
+    },
+    {
+      "name": "Капсулы для стирки",
+      "code": "laundry_capsules",
+      "parent": "household_chemicals"
+    }
+  ],
+  "attribute_groups": [
+    {
+      "name": "Основные параметры",
+      "code": "main",
+      "category": "household_chemicals",
+      "order": 1
+    },
+    {
+      "name": "Состав и свойства",
+      "code": "composition",
+      "category": "household_chemicals",
+      "order": 2
+    },
+    {
+      "name": "Упаковка",
+      "code": "packaging",
+      "category": "household_chemicals",
+      "order": 3
+    }
+  ],
+  "attributes": [
+    {
+      "name": "Категория применения",
+      "code": "usage_category",
+      "group": "main",
+      "data_type": "choice",
+      "is_required": true,
+      "is_filterable": true,
+      "choices": [
+        "Универсальный",
+        "Для цветного белья",
+        "Для белого белья",
+        "Для деликатных тканей",
+        "Детский"
+      ],
+      "order": 1
+    },
+    {
+      "name": "Форма выпуска",
+      "code": "form",
+      "group": "main",
+      "data_type": "choice",
+      "is_required": true,
+      "is_filterable": true,
+      "choices": [
+        "Порошок",
+        "Гранулы",
+        "Капсулы",
+        "Таблетки",
+        "Жидкость"
+      ],
+      "order": 2
+    },
+    {
+      "name": "Тип стирки",
+      "code": "wash_type",
+      "group": "main",
+      "data_type": "multi_choice",
+      "is_required": true,
+      "is_filterable": true,
+      "choices": [
+        "Ручная",
+        "Машинная (автомат)",
+        "Универсальная"
+      ],
+      "order": 3
+    },
+    {
+      "name": "Температурный режим",
+      "code": "temperature",
+      "group": "main",
+      "data_type": "choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Холодная (до 30°C)",
+        "Средняя (40-60°C)",
+        "Горячая (до 90°C)",
+        "Любая"
+      ],
+      "order": 4
+    },
+    {
+      "name": "Содержит энзимы",
+      "code": "has_enzymes",
+      "group": "composition",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 1
+    },
+    {
+      "name": "Содержит отбеливатель",
+      "code": "has_bleach",
+      "group": "composition",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 2
+    },
+    {
+      "name": "Без фосфатов",
+      "code": "phosphate_free",
+      "group": "composition",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 3
+    },
+    {
+      "name": "Гипоаллергенный",
+      "code": "hypoallergenic",
+      "group": "composition",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 4
+    },
+    {
+      "name": "Антибактериальный",
+      "code": "antibacterial",
+      "group": "composition",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 5
+    },
+    {
+      "name": "Аромат",
+      "code": "scent",
+      "group": "composition",
+      "data_type": "choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Без запаха",
+        "Цветочный",
+        "Свежесть",
+        "Морской",
+        "Лимон",
+        "Лаванда"
+      ],
+      "order": 6
+    },
+    {
+      "name": "Масса упаковки",
+      "code": "package_weight",
+      "group": "packaging",
+      "data_type": "integer",
+      "is_required": true,
+      "is_filterable": true,
+      "unit": "г",
+      "min_value": 100,
+      "placeholder": "Вес в граммах",
+      "order": 1
+    },
+    {
+      "name": "Тип упаковки",
+      "code": "package_type",
+      "group": "packaging",
+      "data_type": "choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Пакет",
+        "Коробка",
+        "Пластиковая банка",
+        "Мягкая упаковка с застёжкой"
+      ],
+      "order": 2
+    },
+    {
+      "name": "Срок годности",
+      "code": "shelf_life",
+      "group": "packaging",
+      "data_type": "integer",
+      "is_required": false,
+      "is_filterable": false,
+      "unit": "мес",
+      "min_value": 6,
+      "max_value": 60,
+      "placeholder": "Срок в месяцах",
+      "order": 3
+    }
+  ]
+}

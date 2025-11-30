@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Пресеты фильтров - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-funnel"></i> Пресеты фильтров
+        </h1>
+        <p class="text-muted">Управление сохраненными фильтрами</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'analytics:filterpreset_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать пресет
+        </a>
+    </div>
+</div>
+
+{% if object_list %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Статус</th>
+                        <th>Создан</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for preset in object_list %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'analytics:filterpreset_detail' preset.pk %}">
+                                {{ preset.name }}
+                            </a>
+                        </td>
+                        <td>{{ preset.code }}</td>
+                        <td>
+                            {% if preset.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ preset.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'analytics:filterpreset_detail' preset.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'analytics:filterpreset_update' preset.pk %}" class="btn btn-outline-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'analytics:filterpreset_delete' preset.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> Нет пресетов фильтров. <a href="{% url 'analytics:filterpreset_create' %}">Создать первый пресет</a>
+</div>
+{% endif %}
+{% endblock %}

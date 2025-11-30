@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'coefficients:coefficient_list' %}">Коэффициенты</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ object.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'coefficients:coefficient_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'coefficients:coefficient_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'coefficients:coefficient_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Информация о коэффициенте</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-5">Название:</dt>
+                    <dd class="col-sm-7">{{ object.name }}</dd>
+
+                    <dt class="col-sm-5">Код:</dt>
+                    <dd class="col-sm-7"><code>{{ object.code }}</code></dd>
+
+                    <dt class="col-sm-5">Тип источника данных:</dt>
+                    <dd class="col-sm-7">
+                        {% if object.data_type == 'MON' %}
+                        <span class="badge bg-primary" title="Мониторинговые данные">
+                            <i class="bi bi-rulers"></i> Мониторинг
+                        </span>
+                        {% elif object.data_type == 'EXP' %}
+                        <span class="badge bg-success" title="Экспертные данные">
+                            <i class="bi bi-person-badge"></i> Эксперт
+                        </span>
+                        {% elif object.data_type == 'AI' %}
+                        <span class="badge" style="background-color: #6f42c1;" title="Данные ИИ">
+                            <i class="bi bi-cpu"></i> ИИ
+                        </span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-5">Тип значения:</dt>
+                    <dd class="col-sm-7">{{ object.get_value_type_display }}</dd>
+
+                    <dt class="col-sm-5">Единица измерения:</dt>
+                    <dd class="col-sm-7">{{ object.unit|default:"-" }}</dd>
+
+                    <dt class="col-sm-5">Статус:</dt>
+                    <dd class="col-sm-7">
+                        {% if object.is_active %}
+                        <span class="badge bg-success">Активен</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Неактивен</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-5">Применяется к точке:</dt>
+                    <dd class="col-sm-7">{% if object.applies_to_outlet %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</dd>
+
+                    <dt class="col-sm-5">Применяется к каналу:</dt>
+                    <dd class="col-sm-7">{% if object.applies_to_channel %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</dd>
+
+                    <dt class="col-sm-5">Применяется к региону:</dt>
+                    <dd class="col-sm-7">{% if object.applies_to_region %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</dd>
+
+                    <dt class="col-sm-5">Применяется к стране:</dt>
+                    <dd class="col-sm-7">{% if object.applies_to_country %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</dd>
+
+                    <dt class="col-sm-5">Применяется к глобальному рынку:</dt>
+                    <dd class="col-sm-7">{% if object.applies_to_global %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</dd>
+                </dl>
+            </div>
+        </div>
+
+        {% if object.description %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <dt>Описание:</dt>
+                <dd>{{ object.description }}</dd>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <dt>Дата создания:</dt>
+                <dd>{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+                <dt>Дата обновления:</dt>
+                <dd>{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if object.metrics.exists %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Используется в метриках ({{ object.metrics.count }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="list-group">
+            {% for metric in object.metrics.all %}
+            <a href="{% url 'coefficients:metric_detail' metric.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ metric.name }}</h6>
+                    <small><span class="badge bg-secondary">{{ metric.get_category_display }}</span></small>
+                </div>
+                <p class="mb-1"><code>{{ metric.code }}</code></p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if object.observations.exists %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Наблюдения ({{ object.observations.count }})</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">Всего наблюдений с использованием этого коэффициента: {{ object.observations.count }}</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

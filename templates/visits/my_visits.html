@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои визиты - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-clipboard-check"></i> Мои визиты
+        </h1>
+        <p class="text-muted">Список назначенных вам визитов</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'visits:start_visit_now' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-play-circle-fill"></i> Начать визит
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    {% for visit in visits %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 {% if visit.status == 'planned' %}border-primary{% elif visit.status == 'in_progress' %}border-warning{% else %}border-success{% endif %}">
+            <div class="card-header bg-{% if visit.status == 'planned' %}primary{% elif visit.status == 'in_progress' %}warning{% else %}success{% endif %} text-white">
+                <h5 class="mb-0">
+                    {{ visit.visit_type.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="bi bi-shop"></i> {{ visit.outlet.name }}</h6>
+                    <small class="text-muted">
+                        {{ visit.outlet.channel.name }}<br>
+                        {{ visit.outlet.address }}
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Статус:</strong>
+                    <span class="badge bg-{% if visit.status == 'planned' %}primary{% elif visit.status == 'in_progress' %}warning{% else %}success{% endif %}">
+                        {{ visit.get_status_display }}
+                    </span>
+                </div>
+
+                {% if visit.planned_date %}
+                <div class="mb-3">
+                    <i class="bi bi-calendar"></i>
+                    <strong>Плановая дата:</strong>
+                    {{ visit.planned_date|date:"d.m.Y H:i" }}
+                </div>
+                {% endif %}
+
+                {% if visit.start_date %}
+                <div class="mb-3">
+                    <i class="bi bi-clock"></i>
+                    <strong>Начало:</strong>
+                    {{ visit.start_date|date:"d.m.Y H:i" }}
+                </div>
+                {% endif %}
+
+                {% if visit.end_date %}
+                <div class="mb-3">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>Завершён:</strong>
+                    {{ visit.end_date|date:"d.m.Y H:i" }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                {% if visit.status == 'completed' %}
+                    <button class="btn btn-success btn-sm w-100" disabled>
+                        <i class="bi bi-check-circle-fill"></i> Завершён
+                    </button>
+                {% else %}
+                    <a href="{% url 'visits:fill_visit' visit.pk %}" class="btn btn-primary btn-sm w-100">
+                        {% if visit.status == 'planned' %}
+                            <i class="bi bi-play-fill"></i> Начать визит
+                        {% else %}
+                            <i class="bi bi-pencil-fill"></i> Продолжить
+                        {% endif %}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <p class="mb-0">У вас пока нет назначенных визитов</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

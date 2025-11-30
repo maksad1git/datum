@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактирование{% else %}Создание{% endif %} категории - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:category_list' %}">Категории</a></li>
+        {% if object %}
+        <li class="breadcrumb-item"><a href="{% url 'catalog:category_detail' object.pk %}">{{ object.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Редактирование</li>
+        {% else %}
+        <li class="breadcrumb-item active" aria-current="page">Создание</li>
+        {% endif %}
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <h1>{% if object %}Редактирование{% else %}Создание{% endif %} категории</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        {{ form.name.label }}
+                        {% if form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ form.code.label }}</label>
+                    {{ form.code }}
+                    {% if form.code.errors %}
+                    <div class="invalid-feedback d-block">{{ form.code.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.parent.label }}</label>
+                {{ form.parent }}
+                {% if form.parent.errors %}
+                <div class="invalid-feedback d-block">{{ form.parent.errors.0 }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Оставьте пустым для создания категории верхнего уровня</small>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.description.label }}</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{% if object %}{% url 'catalog:category_detail' object.pk %}{% else %}{% url 'catalog:category_list' %}{% endif %}"
+                   class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

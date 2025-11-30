@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель управления - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-house-fill"></i> Панель управления
+        </h1>
+        <p class="text-muted">Добро пожаловать в систему Datum MVP 1.3</p>
+    </div>
+</div>
+
+<!-- Main Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-primary h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Товары</h6>
+                        <h2 class="card-title mb-0">{{ stats.products|default:"0" }}</h2>
+                    </div>
+                    <div class="text-primary" style="font-size: 2.5rem;">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-primary">
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-sm btn-primary w-100">
+                    <i class="bi bi-arrow-right"></i> Подробнее
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-success h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Бренды</h6>
+                        <h2 class="card-title mb-0">{{ stats.brands|default:"0" }}</h2>
+                    </div>
+                    <div class="text-success" style="font-size: 2.5rem;">
+                        <i class="bi bi-award"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-success">
+                <a href="{% url 'catalog:brand_list' %}" class="btn btn-sm btn-success w-100">
+                    <i class="bi bi-arrow-right"></i> Подробнее
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-warning h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Визиты</h6>
+                        <h2 class="card-title mb-0">{{ stats.visits|default:"0" }}</h2>
+                    </div>
+                    <div class="text-warning" style="font-size: 2.5rem;">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-warning">
+                <a href="{% url 'visits:visit_list' %}" class="btn btn-sm btn-warning w-100">
+                    <i class="bi bi-arrow-right"></i> Подробнее
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-info h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Регионы</h6>
+                        <h2 class="card-title mb-0">{{ stats.regions|default:"0" }}</h2>
+                    </div>
+                    <div class="text-info" style="font-size: 2.5rem;">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-info">
+                <a href="{% url 'geo:region_list' %}" class="btn btn-sm btn-info w-100">
+                    <i class="bi bi-arrow-right"></i> Подробнее
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EAV System Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card border-secondary">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-tags"></i> EAV Система - Статистика атрибутов
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-primary">{{ eav_stats.attributes }}</h3>
+                            <p class="text-muted mb-0">Активных атрибутов</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-success">{{ eav_stats.attribute_groups }}</h3>
+                            <p class="text-muted mb-0">Групп атрибутов</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-warning">{{ eav_stats.products_with_attributes }}</h3>
+                            <p class="text-muted mb-0">Товаров с атрибутами</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-info">{{ eav_stats.total_attribute_values }}</h3>
+                            <p class="text-muted mb-0">Всего значений</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Lists -->
+<div class="row g-3 mb-4">
+    <!-- Visits Chart -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart-fill"></i> Визиты за последние 6 месяцев
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="visitsChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Categories -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-pie-chart-fill"></i> Топ категорий
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if top_categories %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Категория</th>
+                                <th class="text-end">Товаров</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in top_categories %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'catalog:category_detail' category.pk %}">
+                                        {{ category.name }}
+                                    </a>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-primary">{{ category.product_count }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions & Recent Products -->
+<div class="row g-3 mb-4">
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning-fill"></i> Быстрые действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'catalog:product_create' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Добавить товар
+                    </a>
+                    <a href="{% url 'catalog:brand_create' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-plus-circle"></i> Добавить бренд
+                    </a>
+                    <a href="{% url 'catalog:category_create' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-plus-circle"></i> Добавить категорию
+                    </a>
+                    <a href="{% url 'visits:visit_create' %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-plus-circle"></i> Создать визит
+                    </a>
+                    <a href="/admin/catalog/attributedefinition/add/" class="btn btn-outline-secondary btn-sm" target="_blank">
+                        <i class="bi bi-plus-circle"></i> Добавить атрибут
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Products -->
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Последние добавленные товары
+                </h5>
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-sm btn-outline-primary">
+                    Все товары
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_products %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Бренд</th>
+                                <th>Категория</th>
+                                <th class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in recent_products %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'catalog:product_detail' product.pk %}">
+                                        {{ product.name|truncatewords:5 }}
+                                    </a>
+                                </td>
+                                <td>{{ product.brand.name }}</td>
+                                <td>{{ product.category.name }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Нет товаров</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Brands & Product Status -->
+<div class="row g-3">
+    <!-- Top Brands -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-award"></i> Топ брендов
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if top_brands %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Бренд</th>
+                                <th>Страна</th>
+                                <th class="text-end">Товаров</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for brand in top_brands %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'catalog:brand_detail' brand.pk %}">
+                                        {{ brand.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if brand.country %}
+                                        <span class="badge bg-secondary">{{ brand.country.code }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-success">{{ brand.product_count }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Status Distribution -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up"></i> Статусы товаров
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if product_status_stats %}
+                <div class="list-group list-group-flush">
+                    {% for stat in product_status_stats %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            {% if stat.status == 'active' %}
+                                <i class="bi bi-check-circle text-success"></i> Активный
+                            {% elif stat.status == 'draft' %}
+                                <i class="bi bi-pencil text-secondary"></i> Черновик
+                            {% elif stat.status == 'archived' %}
+                                <i class="bi bi-archive text-warning"></i> Архивный
+                            {% else %}
+                                {{ stat.status }}
+                            {% endif %}
+                        </span>
+                        <span class="badge bg-{% if stat.status == 'active' %}success{% elif stat.status == 'draft' %}secondary{% else %}warning{% endif %} rounded-pill">
+                            {{ stat.count }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Visits Chart with real data
+    const visitsCtx = document.getElementById('visitsChart');
+    if (visitsCtx) {
+        new Chart(visitsCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ month_labels|safe }},
+                datasets: [{
+                    label: 'Визиты',
+                    data: {{ visits_by_month|safe }},
+                    backgroundColor: 'rgba(13, 110, 253, 0.5)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Визитов: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

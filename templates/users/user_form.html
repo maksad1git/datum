@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактировать {{ object.username }}{% else %}Создать пользователя{% endif %} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-person-circle"></i>
+            {% if object %}
+                Редактировать: {{ object.get_full_name|default:object.username }}
+            {% else %}
+                Создать пользователя
+            {% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <h5 class="mb-3">Основная информация</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }} *</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">{{ form.username.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="invalid-feedback d-block">{{ form.phone.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Роль и статус</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.role.id_for_label }}" class="form-label">{{ form.role.label }}</label>
+                            {{ form.role }}
+                            {% if form.role.errors %}
+                                <div class="invalid-feedback d-block">{{ form.role.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.avatar.id_for_label }}" class="form-label">{{ form.avatar.label }}</label>
+                        {{ form.avatar }}
+                        {% if form.avatar.errors %}
+                            <div class="invalid-feedback d-block">{{ form.avatar.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Права доступа</h5>
+
+                    <div class="mb-3 form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active.label }}
+                        </label>
+                        <small class="form-text text-muted d-block">Пользователь может входить в систему</small>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form.is_staff }}
+                        <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                            {{ form.is_staff.label }}
+                        </label>
+                        <small class="form-text text-muted d-block">Доступ к админ-панели</small>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Сохранить
+                        </button>
+                        <a href="{% if object %}{% url 'users:user_detail' object.pk %}{% else %}{% url 'users:user_list' %}{% endif %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Справка</h6>
+            </div>
+            <div class="card-body">
+                <p class="small"><strong>Имя пользователя</strong> используется для входа в систему.</p>
+                <p class="small"><strong>Роль</strong> определяет права доступа и функционал.</p>
+                <p class="small"><strong>Статус</strong> позволяет временно приостановить доступ без удаления пользователя.</p>
+                {% if not object %}
+                <hr>
+                <p class="small text-danger"><strong>Внимание:</strong> После создания пользователя необходимо задать пароль через админ-панель.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

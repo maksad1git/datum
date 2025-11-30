@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактировать {{ object.name }}{% else %}Создать правило{% endif %} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-shield-check"></i>
+            {% if object %}
+                Редактировать: {{ object.name }}
+            {% else %}
+                Создать правило
+            {% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.code.id_for_label }}" class="form-label">{{ form.code.label }}</label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">{{ form.code.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.priority.id_for_label }}" class="form-label">{{ form.priority.label }}</label>
+                        {{ form.priority }}
+                        {% if form.priority.errors %}
+                            <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
+                        {% endif %}
+                        {% if form.priority.help_text %}
+                            <small class="form-text text-muted">{{ form.priority.help_text }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="bi bi-sliders"></i> Конфигурация правила</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small">Определите параметры агрегации и условия применения правила</p>
+
+                            <label for="{{ form.rule_config.id_for_label }}" class="form-label fw-bold">{{ form.rule_config.label }}</label>
+                            {{ form.rule_config }}
+                            {% if form.rule_config.errors %}
+                                <div class="invalid-feedback d-block">{{ form.rule_config.errors }}</div>
+                            {% endif %}
+
+                            <div class="alert alert-info mt-3 small">
+                                <strong>Формат JSON:</strong>
+                                <pre class="mb-0">{
+  "method": "AVG",
+  "group_by": ["region", "channel"],
+  "filters": {
+    "status": "active"
+  }
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Сохранить
+                        </button>
+                        <a href="{% if object %}{% url 'coefficients:rule_detail' object.pk %}{% else %}{% url 'coefficients:rule_list' %}{% endif %}" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Правая панель: Справка -->
+    <div class="col-lg-4">
+        <div class="card bg-light sticky-top" style="top: 20px;">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Справка</h5>
+            </div>
+            <div class="card-body">
+                <h6><i class="bi bi-lightbulb"></i> Что такое правило?</h6>
+                <p class="small">Правило определяет способ агрегации данных для построения отчётов. Например: как группировать визиты, какие фильтры применять, как усреднять показатели.</p>
+
+                <hr>
+
+                <h6><i class="bi bi-arrow-down-up"></i> Приоритет</h6>
+                <p class="small">Порядок применения правил (меньше число - выше приоритет). При конфликте правил применяется правило с наивысшим приоритетом.</p>
+
+                <hr>
+
+                <h6><i class="bi bi-sliders"></i> Конфигурация</h6>
+                <p class="small">JSON-объект с параметрами:</p>
+                <ul class="small">
+                    <li><strong>method:</strong> Метод агрегации (SUM, AVG, MIN, MAX, COUNT)</li>
+                    <li><strong>group_by:</strong> Поля для группировки (регион, канал, бренд и т.д.)</li>
+                    <li><strong>filters:</strong> Условия фильтрации данных</li>
+                </ul>
+
+                <hr>
+
+                <div class="alert alert-warning small mb-0">
+                    <strong>Примеры правил:</strong><br><br>
+
+                    <strong>1. Средняя цена по регионам:</strong>
+                    <pre class="mb-2">{
+  "method": "AVG",
+  "group_by": ["region"]
+}</pre>
+
+                    <strong>2. Сумма продаж по каналам:</strong>
+                    <pre class="mb-0">{
+  "method": "SUM",
+  "group_by": ["channel"],
+  "filters": {
+    "status": "completed"
+  }
+}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

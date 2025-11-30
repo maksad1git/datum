@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Шаблоны форм - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-file-text"></i> Шаблоны форм
+        </h1>
+        <p class="text-muted">Управление шаблонами форм для визитов</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'forms:formtemplate_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать шаблон
+        </a>
+    </div>
+</div>
+
+{% if object_list %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Версия</th>
+                        <th>Статус</th>
+                        <th>Создан</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for formtemplate in object_list %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'forms:formtemplate_detail' formtemplate.pk %}">
+                                {{ formtemplate.name }}
+                            </a>
+                        </td>
+                        <td>{{ formtemplate.code }}</td>
+                        <td>{{ formtemplate.version }}</td>
+                        <td>
+                            {% if formtemplate.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ formtemplate.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'forms:formtemplate_detail' formtemplate.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'forms:formtemplate_update' formtemplate.pk %}" class="btn btn-outline-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'forms:formtemplate_delete' formtemplate.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> Нет шаблонов форм. <a href="{% url 'forms:formtemplate_create' %}">Создать первый шаблон</a>
+</div>
+{% endif %}
+{% endblock %}

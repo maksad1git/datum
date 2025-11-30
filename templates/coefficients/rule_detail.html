@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-shield-check"></i> {{ object.name }}
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'coefficients:rule_update' object.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'coefficients:rule_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'coefficients:rule_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Название:</dt>
+                    <dd class="col-sm-8">{{ object.name }}</dd>
+
+                    <dt class="col-sm-4">Код:</dt>
+                    <dd class="col-sm-8"><code>{{ object.code }}</code></dd>
+
+                    <dt class="col-sm-4">Приоритет:</dt>
+                    <dd class="col-sm-8">{{ object.priority }}</dd>
+
+                    <dt class="col-sm-4">Статус:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.is_active %}
+                            <span class="badge bg-success">Активно</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Неактивно</span>
+                        {% endif %}
+                    </dd>
+
+                    {% if object.description %}
+                    <dt class="col-sm-4">Описание:</dt>
+                    <dd class="col-sm-8">{{ object.description }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Системная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Создано:</dt>
+                    <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Обновлено:</dt>
+                    <dd class="col-sm-8">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Конфигурация правила (JSON)</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code>{{ object.rule_config|safe }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Медиа #{{ object.pk }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-image"></i> Медиа #{{ object.pk }}
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'visits:visitmedia_update' object.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'visits:visitmedia_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'visits:visitmedia_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        {% if object.media_file %}
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <img src="{{ object.media_file.url }}" class="img-fluid rounded" alt="{{ object.caption }}" style="max-height: 500px;">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">Визит:</dt>
+                    <dd class="col-sm-7">
+                        <a href="{% url 'visits:visit_detail' object.visit.pk %}">{{ object.visit }}</a>
+                    </dd>
+
+                    <dt class="col-sm-5">Тип:</dt>
+                    <dd class="col-sm-7">{{ object.get_media_type_display }}</dd>
+
+                    {% if object.caption %}
+                    <dt class="col-sm-5">Описание:</dt>
+                    <dd class="col-sm-7">{{ object.caption }}</dd>
+                    {% endif %}
+
+                    {% if object.metadata %}
+                    <dt class="col-sm-5">Метаданные:</dt>
+                    <dd class="col-sm-7"><small>{{ object.metadata|truncatewords:20 }}</small></dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Системная информация</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Создано:</dt>
+                    <dd class="col-sm-7">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-5">Обновлено:</dt>
+                    <dd class="col-sm-7">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

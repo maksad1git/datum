@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'geo:outlet_list' %}">Точки сбыта</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ object.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'geo:outlet_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'geo:outlet_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'geo:outlet_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о точке сбыта</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Название:</dt>
+                            <dd class="col-sm-7">{{ object.name }}</dd>
+
+                            <dt class="col-sm-5">Код:</dt>
+                            <dd class="col-sm-7"><code>{{ object.code|default:"-" }}</code></dd>
+
+                            <dt class="col-sm-5">Канал:</dt>
+                            <dd class="col-sm-7">
+                                <a href="{% url 'geo:channel_detail' object.channel.pk %}">{{ object.channel.name }}</a>
+                            </dd>
+
+                            <dt class="col-sm-5">Статус:</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge bg-{% if object.status == 'active' %}success{% elif object.status == 'inactive' %}warning{% else %}danger{% endif %}">
+                                    {{ object.get_status_display }}
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Телефон:</dt>
+                            <dd class="col-sm-7">{{ object.contact_phone|default:"-" }}</dd>
+
+                            <dt class="col-sm-5">Контактное лицо:</dt>
+                            <dd class="col-sm-7">{{ object.contact_person|default:"-" }}</dd>
+
+                            <dt class="col-sm-5">Дата создания:</dt>
+                            <dd class="col-sm-7">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                            <dt class="col-sm-5">Дата обновления:</dt>
+                            <dd class="col-sm-7">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                {% if object.address %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>Адрес:</dt>
+                        <dd>{{ object.address }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if object.latitude and object.longitude %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>GPS координаты:</dt>
+                        <dd>{{ object.latitude }}, {{ object.longitude }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if object.visits.exists %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Визиты ({{ object.visits.count }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Тип визита</th>
+                                <th>Исполнитель</th>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                                <th class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for visit in object.visits.all|slice:":10" %}
+                            <tr>
+                                <td>{{ visit.visit_type.name }}</td>
+                                <td>{{ visit.user.get_full_name|default:visit.user.username }}</td>
+                                <td>{{ visit.created_at|date:"d.m.Y H:i" }}</td>
+                                <td>{{ visit.get_status_display }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'visits:visit_detail' visit.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        {% if object.photo %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Фото</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ object.photo.url }}" alt="{{ object.name }}" class="img-fluid rounded">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

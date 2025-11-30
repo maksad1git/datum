@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-calculator-fill"></i> {{ object.name }}
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'coefficients:formula_update' object.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'coefficients:formula_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'coefficients:formula_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Название:</dt>
+                    <dd class="col-sm-8">{{ object.name }}</dd>
+
+                    <dt class="col-sm-4">Код:</dt>
+                    <dd class="col-sm-8"><code>{{ object.code }}</code></dd>
+
+                    <dt class="col-sm-4">Тип источника данных:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.source_data_type == 'MON' %}
+                        <span class="badge bg-primary" title="Использует мониторинговые данные">
+                            <i class="bi bi-rulers"></i> Мониторинг
+                        </span>
+                        {% elif object.source_data_type == 'EXP' %}
+                        <span class="badge bg-success" title="Использует экспертные данные">
+                            <i class="bi bi-person-badge"></i> Эксперт
+                        </span>
+                        {% elif object.source_data_type == 'AI' %}
+                        <span class="badge" style="background-color: #6f42c1;" title="Использует данные ИИ">
+                            <i class="bi bi-cpu"></i> ИИ
+                        </span>
+                        {% elif object.source_data_type == 'CUSTOM' %}
+                        <span class="badge bg-warning" title="Смешанные данные">
+                            <i class="bi bi-gear"></i> Custom
+                        </span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Статус:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.is_active %}
+                            <span class="badge bg-success">Активна</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Неактивна</span>
+                        {% endif %}
+                    </dd>
+
+                    {% if object.description %}
+                    <dt class="col-sm-4">Описание:</dt>
+                    <dd class="col-sm-8">{{ object.description }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Системная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Создана:</dt>
+                    <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Обновлена:</dt>
+                    <dd class="col-sm-8">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Выражение формулы</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code>{{ object.expression }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

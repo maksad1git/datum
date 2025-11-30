@@ -1,0 +1,202 @@
+{
+  "meta": {
+    "name": "Ювелирные изделия",
+    "code": "jewelry",
+    "description": "Полный набор категорий и атрибутов для ювелирных изделий: кольца, серьги, цепочки, браслеты, подвески",
+    "icon": "gem",
+    "version": "1.0"
+  },
+  "categories": [
+    {
+      "name": "Ювелирные изделия",
+      "code": "jewelry",
+      "parent": null
+    },
+    {
+      "name": "Кольца",
+      "code": "rings",
+      "parent": "jewelry"
+    },
+    {
+      "name": "Серьги",
+      "code": "earrings",
+      "parent": "jewelry"
+    },
+    {
+      "name": "Цепочки",
+      "code": "chains",
+      "parent": "jewelry"
+    },
+    {
+      "name": "Браслеты",
+      "code": "bracelets",
+      "parent": "jewelry"
+    },
+    {
+      "name": "Подвески",
+      "code": "pendants",
+      "parent": "jewelry"
+    },
+    {
+      "name": "Броши",
+      "code": "brooches",
+      "parent": "jewelry"
+    }
+  ],
+  "attribute_groups": [
+    {
+      "name": "Металл",
+      "code": "metal",
+      "category": "jewelry",
+      "order": 1
+    },
+    {
+      "name": "Вставки",
+      "code": "stones",
+      "category": "jewelry",
+      "order": 2
+    },
+    {
+      "name": "Характеристики",
+      "code": "specs",
+      "category": "jewelry",
+      "order": 3
+    },
+    {
+      "name": "Дополнительно",
+      "code": "extra",
+      "category": "jewelry",
+      "order": 4
+    }
+  ],
+  "attributes": [
+    {
+      "name": "Тип металла",
+      "code": "metal_type",
+      "group": "metal",
+      "data_type": "choice",
+      "is_required": true,
+      "is_filterable": true,
+      "choices": ["Золото", "Серебро", "Платина"],
+      "order": 1
+    },
+    {
+      "name": "Проба",
+      "code": "metal_probe",
+      "group": "metal",
+      "data_type": "choice",
+      "is_required": true,
+      "is_filterable": true,
+      "choices": ["999", "958", "750", "585", "583", "500", "375", "925", "916", "875"],
+      "order": 2
+    },
+    {
+      "name": "Цвет металла",
+      "code": "metal_color",
+      "group": "metal",
+      "data_type": "choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": ["Желтое", "Красное", "Белое"],
+      "order": 3
+    },
+    {
+      "name": "Масса металла",
+      "code": "metal_weight",
+      "group": "metal",
+      "data_type": "decimal",
+      "is_required": false,
+      "is_filterable": false,
+      "unit": "г",
+      "min_value": 0,
+      "placeholder": "Введите вес металла",
+      "order": 4
+    },
+    {
+      "name": "Наличие вставок",
+      "code": "has_stones",
+      "group": "stones",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 1
+    },
+    {
+      "name": "Типы вставок",
+      "code": "stone_types",
+      "group": "stones",
+      "data_type": "multi_choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Бриллиант",
+        "Рубин",
+        "Сапфир",
+        "Изумруд",
+        "Аквамарин",
+        "Аметист",
+        "Цитрин",
+        "Топаз",
+        "Гранат",
+        "Жемчуг",
+        "Янтарь",
+        "Фианит",
+        "Эмаль"
+      ],
+      "order": 2
+    },
+    {
+      "name": "Стиль",
+      "code": "style",
+      "group": "specs",
+      "data_type": "choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Классический",
+        "Модерн",
+        "Винтаж",
+        "Минимализм",
+        "Этнический",
+        "Авангард"
+      ],
+      "order": 1
+    },
+    {
+      "name": "Общая масса изделия",
+      "code": "total_weight",
+      "group": "specs",
+      "data_type": "decimal",
+      "is_required": false,
+      "is_filterable": false,
+      "unit": "г",
+      "min_value": 0,
+      "placeholder": "Введите общий вес",
+      "order": 2
+    },
+    {
+      "name": "Покрытие",
+      "code": "coating",
+      "group": "extra",
+      "data_type": "multi_choice",
+      "is_required": false,
+      "is_filterable": true,
+      "choices": [
+        "Эмалирование",
+        "Родирование",
+        "Полировка",
+        "Матирование"
+      ],
+      "order": 1
+    },
+    {
+      "name": "Наличие клейма",
+      "code": "has_hallmark",
+      "group": "extra",
+      "data_type": "boolean",
+      "is_required": false,
+      "is_filterable": true,
+      "order": 2
+    }
+  ]
+}

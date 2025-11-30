@@ -1,0 +1,634 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактировать {{ object.name }}{% else %}Создать дашборд{% endif %} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-graph-up"></i>
+            {% if object %}Редактировать: {{ object.name }}{% else %}Создать дашборд{% endif %}
+        </h1>
+    </div>
+</div>
+
+<form method="post" id="dashboardForm">
+    {% csrf_token %}
+
+    <div class="row">
+        <!-- Левая панель: Основная информация -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Основная информация</h5>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.name.label }} <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.code.label }} <span class="text-danger">*</span></label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">{{ form.code.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Латиницей, без пробелов</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.dashboard_type.label }} <span class="text-danger">*</span></label>
+                        {{ form.dashboard_type }}
+                        {% if form.dashboard_type.errors %}
+                        <div class="invalid-feedback d-block">{{ form.dashboard_type.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Выберите тип дашборда</small>
+                    </div>
+
+                    <div class="form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Визуальный конструктор виджетов -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Виджеты дашборда</h5>
+                        <button type="button" class="btn btn-light btn-sm" onclick="addWidget()">
+                            <i class="bi bi-plus-circle"></i> Добавить виджет
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="widgetsContainer">
+                        <!-- Виджеты добавляются сюда -->
+                    </div>
+
+                    <div id="emptyState" class="text-center py-5 text-muted">
+                        <i class="bi bi-graph-up" style="font-size: 4rem;"></i>
+                        <p class="mt-3">Нажмите "Добавить виджет" чтобы начать</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Доступ к дашборду -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Доступ</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        {{ form.is_public }}
+                        <label class="form-check-label" for="{{ form.is_public.id_for_label }}">
+                            {{ form.is_public.label }}
+                        </label>
+                        <small class="form-text text-muted d-block">Публичный дашборд доступен всем пользователям</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.shared_with.label }}</label>
+                        {{ form.shared_with }}
+                        {% if form.shared_with.errors %}
+                        <div class="invalid-feedback d-block">{{ form.shared_with.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Выберите пользователей, с которыми поделиться дашбордом</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Скрытое поле для widgets_config -->
+            <input type="hidden" name="widgets_config" id="configInput" value='{"widgets":[]}'>
+
+            <!-- Скрытые поля с дефолтными значениями -->
+            <input type="hidden" name="default_filters" value="{}">
+            <input type="hidden" name="refresh_interval" value="15">
+        </div>
+
+        <!-- Правая панель: Действия и превью -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Сохранить
+                        </button>
+                        <a href="{% if object %}{% url 'analytics:dashboard_detail' object.pk %}{% else %}{% url 'analytics:dashboard_list' %}{% endif %}"
+                           class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <strong>Типы виджетов:</strong><br>
+                        • Метрика - одно число<br>
+                        • График - линейный/столбчатый
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Модальное окно добавления виджета -->
+<div class="modal fade" id="widgetModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить виджет</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Тип виджета <span class="text-danger">*</span></label>
+                    <select class="form-select" id="widgetType" onchange="updateWidgetForm()">
+                        <option value="">Выберите тип...</option>
+                        <option value="metric">📊 Метрика (одно число)</option>
+                        <option value="chart">📈 График</option>
+                    </select>
+                </div>
+
+                <div id="widgetFormContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="saveWidget()">Добавить</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .widget-card {
+        border-left: 4px solid #0dcaf0;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    .widget-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    }
+    .widget-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let widgets = [];
+let editingIndex = null;
+let allCoefficients = [];
+
+// Загрузить коэффициенты при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Dashboard form JavaScript loaded');
+
+    // Загрузить коэффициенты через AJAX
+    fetch('/api/coefficients/')
+        .then(response => response.json())
+        .then(data => {
+            allCoefficients = data;
+        })
+        .catch(() => {
+            // Fallback: использовать заглушки
+            allCoefficients = [
+                {id: 1, name: 'Цена', code: 'price', unit: '₽'},
+                {id: 2, name: 'Наличие', code: 'availability', unit: '%'},
+                {id: 3, name: 'Промо', code: 'promo', unit: 'шт'}
+            ];
+        });
+
+    // Загрузить существующие виджеты если редактируем
+    {% if object and object.widgets_config %}
+    try {
+        const config = {{ object.widgets_config|safe }};
+        if (config && config.widgets) {
+            widgets = config.widgets;
+            renderWidgets();
+        }
+    } catch(e) {
+        console.error('Error loading widgets_config:', e);
+    }
+    {% endif %}
+
+    // Добавить обработчик отправки формы
+    attachSubmitHandler();
+});
+
+function addWidget() {
+    editingIndex = null;
+    document.getElementById('widgetType').value = '';
+    document.getElementById('widgetFormContainer').innerHTML = '';
+    const modal = new bootstrap.Modal(document.getElementById('widgetModal'));
+    modal.show();
+}
+
+function updateWidgetForm() {
+    const type = document.getElementById('widgetType').value;
+    const container = document.getElementById('widgetFormContainer');
+
+    if (!type) {
+        container.innerHTML = '';
+        return;
+    }
+
+    if (type === 'metric') {
+        container.innerHTML = `
+            <div class="mb-3">
+                <label class="form-label">Название <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="widgetTitle" placeholder="Например: Средняя цена">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Источник данных <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetDataSource" onchange="updateDataSourceFields()">
+                    <option value="">Выберите источник...</option>
+                    <option value="static">Статичный (Coefficient)</option>
+                    <option value="monitoring">Мониторинговый (Observation)</option>
+                    <option value="expert">Экспертный (VisitMedia/Custom)</option>
+                </select>
+                <small class="form-text text-muted">
+                    • Статичный - фиксированные значения коэффициентов<br>
+                    • Мониторинговый - данные из наблюдений в визитах<br>
+                    • Экспертный - данные, внесенные экспертами
+                </small>
+            </div>
+
+            <div id="dataSourceFields"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Уровень агрегации <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetAggregationLevel">
+                    <option value="global">Глобальный рынок</option>
+                    <option value="country">По странам</option>
+                    <option value="region">По регионам</option>
+                    <option value="channel">По каналам сбыта</option>
+                    <option value="outlet">По торговым точкам</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Функция агрегации <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetAggregation">
+                    <option value="avg">Среднее (AVG)</option>
+                    <option value="sum">Сумма (SUM)</option>
+                    <option value="count">Количество (COUNT)</option>
+                    <option value="min">Минимум (MIN)</option>
+                    <option value="max">Максимум (MAX)</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Единица измерения</label>
+                <input type="text" class="form-control" id="widgetUnit" placeholder="₽, %, шт">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Цвет <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetColor">
+                    <option value="primary">Синий (Primary)</option>
+                    <option value="success">Зеленый (Success)</option>
+                    <option value="danger">Красный (Danger)</option>
+                    <option value="warning">Желтый (Warning)</option>
+                    <option value="info">Голубой (Info)</option>
+                </select>
+            </div>
+        `;
+    } else if (type === 'chart') {
+        container.innerHTML = `
+            <div class="mb-3">
+                <label class="form-label">Название <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="widgetTitle" placeholder="Например: Динамика по дням">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Источник данных <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetDataSource" onchange="updateDataSourceFields()">
+                    <option value="">Выберите источник...</option>
+                    <option value="static">Статичный (Coefficient)</option>
+                    <option value="monitoring">Мониторинговый (Observation)</option>
+                    <option value="expert">Экспертный (VisitMedia/Custom)</option>
+                </select>
+            </div>
+
+            <div id="dataSourceFields"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Тип графика <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetChartType">
+                    <option value="line">Линейный</option>
+                    <option value="bar">Столбчатый</option>
+                    <option value="pie">Круговой</option>
+                    <option value="doughnut">Кольцевой</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Группировка <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetGroupBy">
+                    <option value="date">По дням</option>
+                    <option value="week">По неделям</option>
+                    <option value="month">По месяцам</option>
+                    <option value="quarter">По кварталам</option>
+                    <option value="region">По регионам</option>
+                    <option value="country">По странам</option>
+                    <option value="channel">По каналам</option>
+                    <option value="outlet">По точкам</option>
+                    <option value="brand">По брендам</option>
+                    <option value="category">По категориям</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Цвет графика</label>
+                <input type="color" class="form-control" id="widgetColor" value="#4bc0c0">
+            </div>
+        `;
+    }
+}
+
+function updateDataSourceFields() {
+    const dataSource = document.getElementById('widgetDataSource')?.value;
+    const container = document.getElementById('dataSourceFields');
+
+    if (!container) return;
+
+    if (dataSource === 'static') {
+        // Статичные данные - выбор коэффициента
+        container.innerHTML = `
+            <div class="mb-3">
+                <label class="form-label">Коэффициент <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetCoefficient">
+                    <option value="">Выберите коэффициент...</option>
+                    ${allCoefficients.map(c => `<option value="${c.id}" data-unit="${c.unit || ''}">${c.name} (${c.code})</option>`).join('')}
+                </select>
+                <small class="form-text text-muted">Будет использовано статичное значение из коэффициента</small>
+            </div>
+        `;
+    } else if (dataSource === 'monitoring') {
+        // Мониторинговые данные - из наблюдений
+        container.innerHTML = `
+            <div class="mb-3">
+                <label class="form-label">Метрика <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetMetric">
+                    <option value="">Выберите метрику...</option>
+                    <option value="osa">Наличие товара (OSA)</option>
+                    <option value="price">Цена</option>
+                    <option value="promo">Промо-активность</option>
+                    <option value="shelf_share">Доля полки</option>
+                    <option value="facing_count">Количество фейсингов</option>
+                </select>
+                <small class="form-text text-muted">Данные будут собраны из наблюдений в визитах</small>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Фильтр по брендам</label>
+                <input type="text" class="form-control" id="widgetBrandFilter" placeholder="Оставьте пустым для всех брендов">
+                <small class="form-text text-muted">ID брендов через запятую, например: 1,2,3</small>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Фильтр по категориям</label>
+                <input type="text" class="form-control" id="widgetCategoryFilter" placeholder="Оставьте пустым для всех категорий">
+                <small class="form-text text-muted">ID категорий через запятую</small>
+            </div>
+        `;
+    } else if (dataSource === 'expert') {
+        // Экспертные данные
+        container.innerHTML = `
+            <div class="mb-3">
+                <label class="form-label">Тип экспертных данных <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetExpertType">
+                    <option value="">Выберите тип...</option>
+                    <option value="visit_quality">Качество визита</option>
+                    <option value="outlet_rating">Рейтинг торговой точки</option>
+                    <option value="compliance">Соответствие стандартам</option>
+                    <option value="custom">Пользовательская метрика</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Формула расчета</label>
+                <textarea class="form-control" id="widgetFormula" rows="3" placeholder="Например: (score1 + score2) / 2"></textarea>
+                <small class="form-text text-muted">Оставьте пустым для простого подсчета</small>
+            </div>
+        `;
+    } else {
+        container.innerHTML = '';
+    }
+}
+
+function saveWidget() {
+    const type = document.getElementById('widgetType').value;
+    const title = document.getElementById('widgetTitle')?.value;
+    const dataSource = document.getElementById('widgetDataSource')?.value;
+
+    if (!type || !title || !dataSource) {
+        alert('Заполните все обязательные поля');
+        return;
+    }
+
+    const widget = {
+        type: type,
+        title: title,
+        data_source: dataSource,
+        aggregation_level: document.getElementById('widgetAggregationLevel')?.value || 'global',
+        aggregation: document.getElementById('widgetAggregation')?.value || 'avg',
+        unit: document.getElementById('widgetUnit')?.value || '',
+        color: document.getElementById('widgetColor')?.value || 'primary'
+    };
+
+    // Добавить специфичные поля в зависимости от источника
+    if (dataSource === 'static') {
+        widget.coefficient_id = parseInt(document.getElementById('widgetCoefficient')?.value);
+    } else if (dataSource === 'monitoring') {
+        widget.metric = document.getElementById('widgetMetric')?.value;
+        widget.brand_filter = document.getElementById('widgetBrandFilter')?.value;
+        widget.category_filter = document.getElementById('widgetCategoryFilter')?.value;
+    } else if (dataSource === 'expert') {
+        widget.expert_type = document.getElementById('widgetExpertType')?.value;
+        widget.formula = document.getElementById('widgetFormula')?.value;
+    }
+
+    if (type === 'chart') {
+        widget.chart_type = document.getElementById('widgetChartType')?.value;
+        widget.group_by = document.getElementById('widgetGroupBy')?.value;
+        const color = document.getElementById('widgetColor')?.value || '#4bc0c0';
+        widget.color = `rgba(${parseInt(color.slice(1,3), 16)}, ${parseInt(color.slice(3,5), 16)}, ${parseInt(color.slice(5,7), 16)}, 0.8)`;
+    }
+
+    if (editingIndex !== null) {
+        widgets[editingIndex] = widget;
+        editingIndex = null;
+    } else {
+        widgets.push(widget);
+    }
+
+    renderWidgets();
+    bootstrap.Modal.getInstance(document.getElementById('widgetModal')).hide();
+}
+
+function renderWidgets() {
+    const container = document.getElementById('widgetsContainer');
+    const emptyState = document.getElementById('emptyState');
+
+    if (widgets.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+
+    container.innerHTML = widgets.map((widget, index) => {
+        const typeIcon = widget.type === 'metric' ? '📊' : '📈';
+        const typeName = widget.type === 'metric' ? 'Метрика' : 'График';
+
+        // Определить источник данных
+        const dataSourceLabels = {
+            'static': 'Статичный',
+            'monitoring': 'Мониторинговый',
+            'expert': 'Экспертный'
+        };
+        const dataSourceLabel = dataSourceLabels[widget.data_source] || widget.data_source;
+
+        // Определить уровень агрегации
+        const aggLevelLabels = {
+            'global': 'Глобальный рынок',
+            'country': 'По странам',
+            'region': 'По регионам',
+            'channel': 'По каналам',
+            'outlet': 'По точкам'
+        };
+        const aggLevelLabel = aggLevelLabels[widget.aggregation_level] || widget.aggregation_level;
+
+        // Получить детали в зависимости от источника
+        let detailsHtml = '';
+        if (widget.data_source === 'static') {
+            const coef = allCoefficients.find(c => c.id === widget.coefficient_id) || {name: 'Unknown', code: 'unknown'};
+            detailsHtml = `<strong>${coef.name}</strong> (${coef.code})`;
+        } else if (widget.data_source === 'monitoring') {
+            detailsHtml = `Метрика: <strong>${widget.metric || 'не указана'}</strong>`;
+        } else if (widget.data_source === 'expert') {
+            detailsHtml = `Тип: <strong>${widget.expert_type || 'не указан'}</strong>`;
+        }
+
+        return `
+            <div class="card widget-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                ${typeIcon} ${widget.title}
+                                <span class="badge widget-badge bg-secondary">${typeName}</span>
+                            </h6>
+                            <small class="text-muted">
+                                Источник: <strong>${dataSourceLabel}</strong><br>
+                                ${detailsHtml}<br>
+                                Уровень: <strong>${aggLevelLabel}</strong><br>
+                                Агрегация: <strong>${widget.aggregation?.toUpperCase() || 'AVG'}</strong>
+                            </small>
+                            ${widget.type === 'metric' ? `
+                                <br><small class="text-muted">Единица: <strong>${widget.unit || '-'}</strong></small>
+                            ` : `
+                                <br><small class="text-muted">
+                                    График: <strong>${widget.chart_type === 'line' ? 'Линейный' : 'Столбчатый'}</strong>,
+                                    группировка: <strong>${getGroupByName(widget.group_by)}</strong>
+                                </small>
+                            `}
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteWidget(${index})" title="Удалить">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    updateConfigInput();
+}
+
+function getGroupByName(value) {
+    const names = {
+        'date': 'по дням',
+        'week': 'по неделям',
+        'month': 'по месяцам',
+        'region': 'по регионам',
+        'channel': 'по каналам',
+        'outlet': 'по точкам'
+    };
+    return names[value] || value;
+}
+
+function deleteWidget(index) {
+    if (confirm('Удалить этот виджет?')) {
+        widgets.splice(index, 1);
+        renderWidgets();
+    }
+}
+
+function updateConfigInput() {
+    const config = {
+        widgets: widgets
+    };
+    document.getElementById('configInput').value = JSON.stringify(config);
+}
+
+// Убедимся, что обработчик submit добавляется после загрузки всех элементов
+function attachSubmitHandler() {
+    const dashboardForm = document.getElementById('dashboardForm');
+    console.log('Attaching submit handler, form:', dashboardForm);
+
+    if (dashboardForm) {
+        dashboardForm.addEventListener('submit', function(e) {
+            console.log('=== FORM SUBMIT EVENT TRIGGERED ===');
+            updateConfigInput();
+
+            // Debug: показать что отправляется
+            const formData = new FormData(this);
+            console.log('=== Отправка формы дашборда ===');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
+            }
+            console.log('=== Конец данных формы ===');
+        });
+        console.log('✅ Submit handler attached to dashboard form');
+    } else {
+        console.error('❌ Dashboard form not found!');
+    }
+}
+</script>
+{% endblock %}

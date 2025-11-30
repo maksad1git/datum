@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Атрибуты товаров - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-tags"></i> Атрибуты товаров
+        </h1>
+        <p class="text-muted">Управление характеристиками товаров по категориям</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'catalog:attributedefinition_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать атрибут
+        </a>
+        <a href="{% url 'catalog:attributegroup_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-folder2-open"></i> К группам
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Группа / Категория</th>
+                        <th>Тип</th>
+                        <th>Обязательный</th>
+                        <th>Фильтр</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attr in attributes %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'catalog:attributedefinition_detail' attr.pk %}">
+                                <strong>{{ attr.name }}</strong>
+                            </a>
+                            {% if attr.unit %}
+                                <small class="text-muted">({{ attr.unit }})</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if attr.group %}
+                                {{ attr.group.name }} / <span class="text-muted">{{ attr.group.category.name }}</span>
+                            {% else %}
+                                <span class="text-muted">Без группы</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if attr.data_type == 'text' %}
+                                <span class="badge bg-primary">Текст</span>
+                            {% elif attr.data_type == 'integer' %}
+                                <span class="badge bg-info">Число</span>
+                            {% elif attr.data_type == 'decimal' %}
+                                <span class="badge bg-info">Десятичное</span>
+                            {% elif attr.data_type == 'boolean' %}
+                                <span class="badge bg-success">Да/Нет</span>
+                            {% elif attr.data_type == 'choice' %}
+                                <span class="badge bg-warning">Выбор</span>
+                            {% elif attr.data_type == 'date' %}
+                                <span class="badge bg-secondary">Дата</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ attr.get_data_type_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if attr.is_required %}
+                                <i class="bi bi-check-circle text-success"></i>
+                            {% else %}
+                                <i class="bi bi-dash-circle text-muted"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if attr.is_filterable %}
+                                <i class="bi bi-funnel-fill text-primary"></i>
+                            {% else %}
+                                <i class="bi bi-funnel text-muted"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if attr.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'catalog:attributedefinition_update' attr.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'catalog:attributedefinition_delete' attr.pk %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p>Пока нет атрибутов</p>
+                            <a href="{% url 'catalog:attributedefinition_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Создать первый атрибут
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

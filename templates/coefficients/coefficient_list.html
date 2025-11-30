@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Коэффициенты - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Коэффициенты</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Коэффициенты</h1>
+    <a href="{% url 'coefficients:coefficient_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Создать новый
+    </a>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Фильтр по типу источника данных:</label>
+                <div class="btn-group w-100" role="group">
+                    <a href="?" class="btn {% if not request.GET.data_type %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        Все
+                    </a>
+                    <a href="?data_type=MON" class="btn {% if request.GET.data_type == 'MON' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <i class="bi bi-rulers"></i> Мониторинг
+                    </a>
+                    <a href="?data_type=EXP" class="btn {% if request.GET.data_type == 'EXP' %}btn-success{% else %}btn-outline-success{% endif %}">
+                        <i class="bi bi-person-badge"></i> Эксперт
+                    </a>
+                    <a href="?data_type=AI" class="btn {% if request.GET.data_type == 'AI' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                        <i class="bi bi-cpu"></i> ИИ
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Тип данных</th>
+                        <th>Тип значения</th>
+                        <th>Единица измерения</th>
+                        <th>Статус</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coefficient in object_list %}
+                    <tr>
+                        <td><a href="{% url 'coefficients:coefficient_detail' coefficient.pk %}">{{ coefficient.name }}</a></td>
+                        <td><code>{{ coefficient.code }}</code></td>
+                        <td>
+                            {% if coefficient.data_type == 'MON' %}
+                            <span class="badge bg-primary" title="Мониторинговые данные">
+                                <i class="bi bi-rulers"></i> Мониторинг
+                            </span>
+                            {% elif coefficient.data_type == 'EXP' %}
+                            <span class="badge bg-success" title="Экспертные данные">
+                                <i class="bi bi-person-badge"></i> Эксперт
+                            </span>
+                            {% elif coefficient.data_type == 'AI' %}
+                            <span class="badge" style="background-color: #6f42c1;" title="Данные ИИ">
+                                <i class="bi bi-cpu"></i> ИИ
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ coefficient.get_value_type_display }}</td>
+                        <td>{{ coefficient.unit|default:"-" }}</td>
+                        <td>
+                            {% if coefficient.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Неактивен</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'coefficients:coefficient_detail' coefficient.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'coefficients:coefficient_update' coefficient.pk %}" class="btn btn-outline-secondary" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'coefficients:coefficient_delete' coefficient.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Нет данных</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1">Первая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

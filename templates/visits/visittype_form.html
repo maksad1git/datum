@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактирование{% else %}Создание{% endif %} типа визита - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-clipboard-check"></i>
+            {% if object %}Редактирование: {{ object.name }}{% else %}Создать тип визита{% endif %}
+        </h1>
+    </div>
+</div>
+
+<form method="post" id="visitTypeForm">
+    {% csrf_token %}
+
+    <div class="row">
+        <!-- Левая панель: Основные настройки -->
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Основные настройки</h5>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Название типа визита *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Например: "Аудит наличия товара", "Мониторинг цен"</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Код *</label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">{{ form.code.errors.0 }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Уникальный код (латиница, без пробелов)</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Тип визита</label>
+                            {{ form.type }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Форма для заполнения</label>
+                            {{ form.form_template }}
+                            <small class="form-text text-muted">
+                                <a href="{% url 'forms:formtemplate_create' %}" target="_blank">
+                                    <i class="bi bi-plus-circle"></i> Создать новую форму
+                                </a>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Описание</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Требования -->
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-check-square"></i> Требования к визиту</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch mb-3">
+                                {{ form.requires_photo }}
+                                <label class="form-check-label" for="{{ form.requires_photo.id_for_label }}">
+                                    <i class="bi bi-camera"></i> {{ form.requires_photo.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch mb-3">
+                                {{ form.requires_signature }}
+                                <label class="form-check-label" for="{{ form.requires_signature.id_for_label }}">
+                                    <i class="bi bi-pen"></i> {{ form.requires_signature.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch mb-3">
+                                {{ form.requires_gps }}
+                                <label class="form-check-label" for="{{ form.requires_gps.id_for_label }}">
+                                    <i class="bi bi-geo-alt"></i> {{ form.requires_gps.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Коэффициенты -->
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Коэффициенты для замера</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Выберите показатели, которые нужно замерять в этом визите</p>
+
+                    <!-- Скрытое поле для Django -->
+                    <input type="hidden" name="coefficients" id="coefficientsInput" value="">
+
+                    <div id="selectedCoefficients" class="mb-3">
+                        <!-- Сюда добавляются выбранные коэффициенты -->
+                    </div>
+
+                    <button type="button" class="btn btn-outline-success" onclick="showCoefficientSelector()">
+                        <i class="bi bi-plus-circle"></i> Добавить коэффициент
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle"></i> Сохранить
+                </button>
+                <a href="{% url 'visits:visittype_list' %}" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+            </div>
+        </div>
+
+        <!-- Правая панель: Справка -->
+        <div class="col-lg-4">
+            <div class="card bg-light sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Справка</h5>
+                </div>
+                <div class="card-body">
+                    <h6><i class="bi bi-lightbulb"></i> Что такое тип визита?</h6>
+                    <p class="small">Тип визита - это шаблон для проведения полевых работ. Определяет какую форму заполнять и какие показатели замерять.</p>
+
+                    <hr>
+
+                    <h6><i class="bi bi-file-text"></i> Форма</h6>
+                    <p class="small">Динамическая форма с полями (текст, число, фото и т.д.). Создаётся в конструкторе форм.</p>
+
+                    <hr>
+
+                    <h6><i class="bi bi-graph-up"></i> Коэффициенты</h6>
+                    <p class="small">Числовые показатели, которые нужно замерить (цена, наличие, фасинг и т.д.).</p>
+
+                    <hr>
+
+                    <div class="form-check form-switch">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Модальное окно выбора коэффициентов -->
+<div class="modal fade" id="coefficientModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Выбрать коэффициенты</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control mb-3" id="coefficientSearch" placeholder="Поиск коэффициента...">
+                <div id="coefficientList" style="max-height: 400px; overflow-y: auto;">
+                    <div class="alert alert-info">
+                        <i class="bi bi-hourglass-split"></i> Загрузка коэффициентов...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.coefficient-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    margin: 5px;
+    background: #e7f3ff;
+    border: 1px solid #0d6efd;
+    border-radius: 8px;
+}
+
+.coefficient-item {
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.coefficient-item:hover {
+    background: #f8f9fa;
+    border-color: #0d6efd;
+}
+
+.coefficient-item.selected {
+    background: #e7f3ff;
+    border-color: #0d6efd;
+}
+</style>
+
+<script>
+let selectedCoefficients = new Set();
+let allCoefficients = [];
+
+// Загрузить коэффициенты при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Загрузить все доступные коэффициенты
+    fetch('/api/coefficients/')
+        .then(response => response.json())
+        .then(data => {
+            allCoefficients = data;
+            renderCoefficientList();
+        })
+        .catch(error => {
+            console.error('Error loading coefficients:', error);
+            // Fallback: показать все коэффициенты из формы
+            const select = document.querySelector('[name="coefficients"]');
+            if (select) {
+                allCoefficients = Array.from(select.options).map(opt => ({
+                    id: parseInt(opt.value),
+                    name: opt.text,
+                    code: opt.value
+                })).filter(c => c.id);
+                renderCoefficientList();
+            }
+        });
+
+    // Загрузить уже выбранные коэффициенты
+    {% if object and object.coefficients.all %}
+    {% for coef in object.coefficients.all %}
+    selectedCoefficients.add({{ coef.id }});
+    addCoefficientBadge({{ coef.id }}, '{{ coef.name }}', '{{ coef.code }}');
+    {% endfor %}
+    updateHiddenInput();
+    {% endif %}
+});
+
+function showCoefficientSelector() {
+    const modal = new bootstrap.Modal(document.getElementById('coefficientModal'));
+    modal.show();
+}
+
+function renderCoefficientList() {
+    const container = document.getElementById('coefficientList');
+    const searchInput = document.getElementById('coefficientSearch');
+    const search = searchInput ? searchInput.value.toLowerCase() : '';
+
+    if (allCoefficients.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">Загрузка коэффициентов...</div>';
+        return;
+    }
+
+    const filtered = allCoefficients.filter(c =>
+        c.name.toLowerCase().includes(search) ||
+        c.code.toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="alert alert-warning">Коэффициенты не найдены</div>';
+        return;
+    }
+
+    container.innerHTML = filtered.map(coef => `
+        <div class="coefficient-item ${selectedCoefficients.has(coef.id) ? 'selected' : ''}"
+             onclick="toggleCoefficient(${coef.id}, '${coef.name}', '${coef.code}')">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${coef.name}</strong>
+                    <small class="text-muted d-block">${coef.code} ${coef.unit ? '(' + coef.unit + ')' : ''}</small>
+                </div>
+                <div>
+                    ${selectedCoefficients.has(coef.id) ? '<i class="bi bi-check-circle-fill text-success fs-4"></i>' : '<i class="bi bi-circle text-muted fs-4"></i>'}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleCoefficient(id, name, code) {
+    if (selectedCoefficients.has(id)) {
+        selectedCoefficients.delete(id);
+        removeCoefficientBadge(id);
+    } else {
+        selectedCoefficients.add(id);
+        addCoefficientBadge(id, name, code);
+    }
+    updateHiddenInput();
+    renderCoefficientList();
+}
+
+function addCoefficientBadge(id, name, code) {
+    const container = document.getElementById('selectedCoefficients');
+    const badge = document.createElement('div');
+    badge.className = 'coefficient-badge';
+    badge.id = `coef-badge-${id}`;
+    badge.innerHTML = `
+        <span><strong>${name}</strong> <small class="text-muted">(${code})</small></span>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCoefficient(${id})">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+    container.appendChild(badge);
+}
+
+function removeCoefficientBadge(id) {
+    const badge = document.getElementById(`coef-badge-${id}`);
+    if (badge) badge.remove();
+}
+
+function removeCoefficient(id) {
+    selectedCoefficients.delete(id);
+    removeCoefficientBadge(id);
+    updateHiddenInput();
+    renderCoefficientList();
+}
+
+function updateHiddenInput() {
+    const input = document.getElementById('coefficientsInput');
+    input.value = Array.from(selectedCoefficients).join(',');
+}
+
+// Поиск коэффициентов
+document.getElementById('coefficientSearch')?.addEventListener('input', renderCoefficientList);
+
+// При отправке формы
+document.getElementById('visitTypeForm').addEventListener('submit', function(e) {
+    // Django ожидает multiple select, поэтому создаём скрытые inputs
+    const container = document.createElement('div');
+    container.id = 'coefficients-hidden-inputs';
+
+    selectedCoefficients.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'coefficients';
+        input.value = id;
+        container.appendChild(input);
+    });
+
+    // Удалить старые если есть
+    const old = document.getElementById('coefficients-hidden-inputs');
+    if (old) old.remove();
+
+    this.appendChild(container);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,620 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ visit.visit_type.name }} - {{ visit.outlet.name }} - Datum{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mobile-first optimizations */
+.mobile-visit-form {
+    max-width: 100%;
+}
+
+/* Touch-friendly controls */
+.mobile-visit-form .form-control,
+.mobile-visit-form .form-select {
+    min-height: 60px;
+    font-size: 18px;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.mobile-visit-form .form-control-lg {
+    min-height: 60px;
+    font-size: 18px;
+}
+
+.mobile-visit-form .form-label {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #2d3748;
+}
+
+.mobile-visit-form textarea {
+    min-height: 120px;
+    font-size: 18px;
+}
+
+/* Large checkboxes and switches */
+.mobile-visit-form .form-check-input {
+    width: 3em;
+    height: 1.5em;
+    cursor: pointer;
+}
+
+.mobile-visit-form .form-check-label {
+    font-size: 18px;
+    margin-left: 10px;
+}
+
+/* Number inputs with better touch targets */
+.mobile-visit-form input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.mobile-visit-form input[type="number"]::-webkit-inner-spin-button,
+.mobile-visit-form input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Photo upload button */
+.mobile-visit-form input[type="file"] {
+    padding: 18px;
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.mobile-visit-form input[type="file"]:hover {
+    border-color: #4299e1;
+    background-color: #ebf8ff;
+}
+
+/* Section headers */
+.form-section-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin: 30px 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.form-section-header:first-child {
+    margin-top: 0;
+}
+
+/* Action buttons */
+.action-btn {
+    min-height: 60px;
+    font-size: 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: transform 0.2s;
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+/* Progress bar */
+.visit-progress {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
+    padding: 10px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Photo preview cards */
+.photo-preview-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.photo-preview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Coefficient cards */
+.coefficient-card {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.coefficient-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Sticky action panel for desktop */
+@media (min-width: 992px) {
+    .sticky-action-panel {
+        position: sticky;
+        top: 20px;
+    }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .form-section-header {
+        font-size: 16px;
+        padding: 14px 16px;
+    }
+
+    /* Fixed bottom action bar for mobile */
+    .mobile-action-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 12px;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    .mobile-action-bar .btn {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .mobile-action-bar .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Add padding to bottom to account for fixed action bar */
+    .mobile-visit-form {
+        padding-bottom: 200px;
+    }
+}
+
+/* Autosave indicator */
+.autosave-indicator {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 999;
+    animation: slideInRight 0.3s;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* Required field indicator */
+.required-indicator {
+    color: #e53e3e;
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+/* Help text styling */
+.form-text {
+    font-size: 14px;
+    color: #718096;
+    margin-top: 6px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Прогресс-бар заполнения -->
+<div class="visit-progress">
+    <div class="container">
+        <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-success" role="progressbar" id="formProgress" style="width: 0%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container mobile-visit-form">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div class="mb-2">
+                    <h1 class="h4 mb-2">
+                        <i class="bi bi-clipboard-check"></i> {{ visit.visit_type.name }}
+                    </h1>
+                    <p class="text-muted mb-0 small">
+                        <i class="bi bi-shop"></i> {{ visit.outlet.name }}<br>
+                        <span class="d-inline-block mt-1">{{ visit.outlet.address }}</span>
+                    </p>
+                </div>
+                <div>
+                    <span class="badge bg-{% if visit.status == 'planned' %}primary{% elif visit.status == 'in_progress' %}warning{% else %}success{% endif %}" style="font-size: 14px; padding: 8px 12px;">
+                        {{ visit.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<form method="post" enctype="multipart/form-data" id="visitForm">
+    {% csrf_token %}
+
+    <div class="row">
+        <!-- Левая панель: Основная форма -->
+        <div class="col-lg-8 mb-5 mb-lg-0">
+
+            {% if coefficients %}
+            <!-- Coefficients section header -->
+            <div class="form-section-header">
+                <i class="bi bi-graph-up"></i> Коэффициенты
+            </div>
+
+            <div class="mb-4">
+                {% for coef in coefficients %}
+                <div class="coefficient-card">
+                    <label class="form-label">
+                        {{ coef.name }}
+                        {% if coef.unit %}
+                            <span class="text-muted">({{ coef.unit }})</span>
+                        {% endif %}
+                    </label>
+
+                    {% if coef.value_type == 'numeric' %}
+                        <input
+                            type="number"
+                            name="coef_{{ coef.id }}"
+                            class="form-control"
+                            step="any"
+                            placeholder="Введите значение"
+                            value="{{ coef.current_value|default:'' }}">
+
+                    {% elif coef.value_type == 'boolean' %}
+                        <div class="form-check form-switch mt-2">
+                            <input
+                                type="checkbox"
+                                name="coef_{{ coef.id }}"
+                                class="form-check-input"
+                                id="coef_{{ coef.id }}"
+                                {% if coef.current_value %}checked{% endif %}>
+                            <label class="form-check-label" for="coef_{{ coef.id }}">
+                                Да
+                            </label>
+                        </div>
+
+                    {% elif coef.value_type == 'text' %}
+                        <textarea
+                            name="coef_{{ coef.id }}"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Введите значение">{{ coef.current_value|default:'' }}</textarea>
+
+                    {% endif %}
+
+                    {% if coef.description %}
+                    <div class="form-text mt-2">{{ coef.description }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Комментарии -->
+            <div class="form-section-header">
+                <i class="bi bi-chat-left-text"></i> Комментарии
+            </div>
+            <div class="mb-4">
+                <textarea name="notes" class="form-control" rows="4" placeholder="Дополнительные комментарии к визиту...">{{ visit.notes }}</textarea>
+            </div>
+
+            <!-- Desktop action buttons -->
+            <div class="d-none d-lg-block mb-4">
+                <div class="d-grid gap-2">
+                    {% if visit.status == 'planned' %}
+                        <button type="submit" name="start_visit" class="btn btn-primary action-btn">
+                            <i class="bi bi-play-fill"></i> Начать визит
+                        </button>
+                    {% elif visit.status == 'in_progress' %}
+                        <button type="submit" class="btn btn-info action-btn">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                        <button type="submit" name="complete_visit" class="btn btn-success action-btn">
+                            <i class="bi bi-check-circle-fill"></i> Завершить визит
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-secondary action-btn" disabled>
+                            <i class="bi bi-check-circle"></i> Визит завершён
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'visits:my_visits' %}" class="btn btn-outline-secondary action-btn">
+                        <i class="bi bi-arrow-left"></i> Назад к списку
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая панель: Информация (только на десктопе) -->
+        <div class="col-lg-4 d-none d-lg-block">
+            <div class="sticky-action-panel">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Информация</h5>
+                    </div>
+                    <div class="card-body">
+                        <small class="text-muted">
+                            <div class="mb-2"><strong>Создано:</strong><br>{{ visit.created_at|date:"d.m.Y H:i" }}</div>
+                            {% if visit.start_date %}
+                            <div class="mb-2"><strong>Начато:</strong><br>{{ visit.start_date|date:"d.m.Y H:i" }}</div>
+                            {% endif %}
+                            {% if visit.end_date %}
+                            <div class="mb-2"><strong>Завершено:</strong><br>{{ visit.end_date|date:"d.m.Y H:i" }}</div>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile fixed action bar -->
+    <div class="d-lg-none mobile-action-bar">
+        {% if visit.status == 'planned' %}
+            <button type="submit" name="start_visit" class="btn btn-primary action-btn">
+                <i class="bi bi-play-fill"></i> Начать визит
+            </button>
+        {% elif visit.status == 'in_progress' %}
+            <button type="submit" class="btn btn-info action-btn">
+                <i class="bi bi-save"></i> Сохранить
+            </button>
+            <button type="submit" name="complete_visit" class="btn btn-success action-btn">
+                <i class="bi bi-check-circle-fill"></i> Завершить визит
+            </button>
+        {% else %}
+            <button type="submit" class="btn btn-secondary action-btn" disabled>
+                <i class="bi bi-check-circle"></i> Визит завершён
+            </button>
+        {% endif %}
+        <a href="{% url 'visits:my_visits' %}" class="btn btn-outline-secondary action-btn">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing form...');
+
+    // Обновление прогресс-бара
+    updateProgressBar();
+
+    // Добавить слушатели для всех полей формы для обновления прогресса
+    const formInputs = document.querySelectorAll('#visitForm input, #visitForm textarea, #visitForm select');
+    formInputs.forEach(element => {
+        element.addEventListener('change', updateProgressBar);
+        element.addEventListener('input', updateProgressBar);
+    });
+
+    // Предотвратить случайный выход со страницы с несохраненными данными
+    let formChanged = false;
+    const visitForm = document.getElementById('visitForm');
+
+    if (visitForm) {
+        visitForm.addEventListener('change', function() {
+            formChanged = true;
+        });
+
+        visitForm.addEventListener('submit', function() {
+            formChanged = false;
+        });
+    }
+
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged && '{{ visit.status }}' === 'in_progress') {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Простое автосохранение в localStorage
+    const autosaveKey = 'visit_{{ visit.id }}_autosave';
+    let autosaveTimer;
+
+    function saveFormToLocalStorage() {
+        if (!visitForm) return;
+
+        const formData = {};
+        const inputs = visitForm.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea, select');
+
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                formData[input.name] = input.checked;
+            } else if (input.type === 'radio') {
+                if (input.checked) {
+                    formData[input.name] = input.value;
+                }
+            } else {
+                formData[input.name] = input.value;
+            }
+        });
+
+        try {
+            localStorage.setItem(autosaveKey, JSON.stringify(formData));
+            console.log('Form autosaved to localStorage');
+        } catch (e) {
+            console.warn('Autosave failed:', e);
+        }
+    }
+
+    function loadFormFromLocalStorage() {
+        try {
+            const savedData = localStorage.getItem(autosaveKey);
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+
+                Object.keys(formData).forEach(name => {
+                    const input = visitForm.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = formData[name];
+                        } else if (input.type === 'radio') {
+                            if (input.value === formData[name]) {
+                                input.checked = true;
+                            }
+                        } else {
+                            input.value = formData[name];
+                        }
+                    }
+                });
+
+                console.log('Form data restored from localStorage');
+                updateProgressBar();
+            }
+        } catch (e) {
+            console.warn('Failed to restore autosaved data:', e);
+        }
+    }
+
+    // Загрузить сохраненные данные при загрузке страницы
+    if (visitForm && '{{ visit.status }}' === 'in_progress') {
+        loadFormFromLocalStorage();
+    }
+
+    // Автосохранение каждые 30 секунд
+    if (visitForm && '{{ visit.status }}' === 'in_progress') {
+        autosaveTimer = setInterval(saveFormToLocalStorage, 30000);
+    }
+
+    // Сохранить перед отправкой формы и очистить localStorage
+    if (visitForm) {
+        visitForm.addEventListener('submit', function() {
+            localStorage.removeItem(autosaveKey);
+            if (autosaveTimer) {
+                clearInterval(autosaveTimer);
+            }
+        });
+    }
+});
+
+// Обновление прогресс-бара заполнения формы
+function updateProgressBar() {
+    const form = document.getElementById('visitForm');
+    if (!form) return;
+
+    const inputs = form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]), textarea, select');
+    let filledCount = 0;
+    let totalCount = inputs.length;
+
+    inputs.forEach(input => {
+        if (input.type === 'checkbox') {
+            if (input.checked) filledCount++;
+        } else if (input.type === 'file') {
+            if (input.files && input.files.length > 0) filledCount++;
+        } else if (input.value && input.value.trim() !== '') {
+            filledCount++;
+        }
+    });
+
+    const percentage = totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0;
+    const progressBar = document.getElementById('formProgress');
+    if (progressBar) {
+        progressBar.style.width = percentage + '%';
+        progressBar.setAttribute('aria-valuenow', percentage);
+    }
+}
+
+// Функция превью фото
+function previewPhotos(input, previewId) {
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = '';
+
+    if (!input.files || input.files.length === 0) {
+        updateProgressBar();
+        return;
+    }
+
+    Array.from(input.files).forEach((file, index) => {
+        // Проверить размер файла (максимум 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert(`Файл ${file.name} слишком большой. Максимум 10MB`);
+            return;
+        }
+
+        // Сжать изображение перед отправкой
+        compressImage(file, (compressedBlob) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-4 mb-3';
+                col.innerHTML = `
+                    <div class="photo-preview-card">
+                        <img src="${e.target.result}" class="w-100" style="height: 150px; object-fit: cover;">
+                        <div class="p-2 bg-white">
+                            <small class="text-muted d-block text-truncate">${file.name}</small>
+                            <small class="text-success"><i class="bi bi-check-circle"></i> ${formatFileSize(compressedBlob.size)}</small>
+                        </div>
+                    </div>
+                `;
+                preview.appendChild(col);
+            };
+            reader.readAsDataURL(compressedBlob);
+        });
+    });
+
+    updateProgressBar();
+}
+
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Максимальный размер 1920px
+            const maxSize = 1920;
+            if (width > height && width > maxSize) {
+                height = (height * maxSize) / width;
+                width = maxSize;
+            } else if (height > maxSize) {
+                width = (width * maxSize) / height;
+                height = maxSize;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(callback, 'image/jpeg', 0.8);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+</script>
+{% endblock %}

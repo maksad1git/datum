@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./venv_datum/Scripts/activate.bat)",
+      "Bash(python manage.py makemigrations:*)",
+      "Bash(venv_datum/Scripts/pip install:*)",
+      "Bash(venv_datum/Scripts/python:*)",
+      "Bash(wc:*)",
+      "Bash(timeout 3 bash:*)",
+      "Bash(timeout 5 venv_datum/Scripts/python manage.py runserver:*)",
+      "Bash(nul)",
+      "Bash(FONON_ANALYSIS.md)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(python manage.py:*)",
+      "Bash(./venv_new/Scripts/python.exe manage.py:*)",
+      "Bash(dir:*)",
+      "Bash(./venv_datum/Scripts/python manage.py makemigrations:*)",
+      "Bash(timeout 5 ./venv_datum/Scripts/python manage.py runserver:*)",
+      "Bash(./venv_datum/Scripts/python manage.py showmigrations:*)",
+      "Bash(./venv_datum/Scripts/python:*)",
+      "Bash(pkill:*)",
+      "Bash(./venv_datum/Scripts/pip:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

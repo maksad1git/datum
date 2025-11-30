@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ report.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-center {
+                content: "Страница " counter(page) " из " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        h1 {
+            color: #0d6efd;
+            border-bottom: 3px solid #0d6efd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 8px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            text-align: right;
+            color: #6c757d;
+            font-size: 9pt;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            width: 30%;
+            margin: 10px 1.5%;
+            padding: 15px;
+            border: 2px solid #0d6efd;
+            border-radius: 8px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .metric-title {
+            font-size: 9pt;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .metric-unit {
+            font-size: 14pt;
+            color: #6c757d;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #0d6efd;
+            page-break-inside: avoid;
+        }
+
+        .info-box dt {
+            font-weight: bold;
+            color: #495057;
+            display: inline-block;
+            width: 150px;
+        }
+
+        .info-box dd {
+            display: inline;
+            margin-left: 10px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            text-align: center;
+            font-size: 9pt;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Заголовок -->
+    <div class="header">
+        Дата создания: {{ generated_at|date:"d.m.Y H:i" }}
+    </div>
+
+    <!-- Название отчета -->
+    <h1>{{ report.name }}</h1>
+
+    {% if report.description %}
+    <p style="margin-bottom: 30px; color: #6c757d;">{{ report.description }}</p>
+    {% endif %}
+
+    <!-- Информация об отчете -->
+    <div class="info-box">
+        <dl>
+            <dt>Статус:</dt>
+            <dd>{{ report.get_status_display }}</dd>
+            <br>
+            <dt>Создан:</dt>
+            <dd>{{ report.created_at|date:"d.m.Y H:i" }}</dd>
+            <br>
+            {% if report.template %}
+            <dt>Шаблон:</dt>
+            <dd>{{ report.template.name }}</dd>
+            <br>
+            {% endif %}
+            {% if report.created_by %}
+            <dt>Автор:</dt>
+            <dd>{{ report.created_by.get_full_name|default:report.created_by.username }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <!-- Метрики -->
+    {% if metrics %}
+    <h2>Ключевые показатели</h2>
+    <div class="metrics">
+        {% for metric in metrics %}
+        <div class="metric-card">
+            <div class="metric-title">{{ metric.title }}</div>
+            <div class="metric-value">
+                {{ metric.value|floatformat:2 }}
+                {% if metric.unit %}
+                <span class="metric-unit">{{ metric.unit }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Таблицы -->
+    {% if tables %}
+    {% for table in tables %}
+    <h2>{{ table.title }}</h2>
+    <table>
+        <thead>
+            <tr>
+                {% for key in table.data.0.keys %}
+                <th>{{ key|title }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table.data %}
+            <tr>
+                {% for value in row.values %}
+                <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Если нет данных -->
+    {% if not metrics and not tables %}
+    <div class="info-box" style="border-left-color: #ffc107;">
+        <p style="margin: 0;"><strong>⚠️ Внимание:</strong> Отчет не содержит данных для отображения.</p>
+    </div>
+    {% endif %}
+
+    <!-- Футер -->
+    <div class="footer">
+        <p>Сгенерировано системой Datum &copy; {{ generated_at|date:"Y" }}</p>
+        <p>Этот отчет был создан автоматически и является конфиденциальным</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Datum{% endblock %}</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+
+    <!-- Theme color для mobile browsers -->
+    <meta name="theme-color" content="#0d6efd">
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+    <!-- iOS meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Datum">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --navbar-height: 56px;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-top: var(--navbar-height);
+        }
+
+        .main-content {
+            margin-left: 0;
+            transition: margin-left 0.3s;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: var(--navbar-height);
+            left: -var(--sidebar-width);
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--navbar-height));
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            transition: left 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar.show {
+            left: 0;
+        }
+
+        .sidebar-open .main-content {
+            margin-left: var(--sidebar-width);
+        }
+
+        /* На больших экранах sidebar всегда виден */
+        @media (min-width: 992px) {
+            .sidebar {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-width);
+            }
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 1rem 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .nav-link {
+            transition: color 0.15s ease-in-out;
+        }
+
+        .nav-link:hover {
+            color: #0d6efd !important;
+        }
+
+        .dropdown-menu {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                z-index: 1040;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    {% include 'includes/navbar.html' %}
+
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid py-4">
+            <!-- Messages -->
+            {% include 'includes/messages.html' %}
+
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">&copy; 2025 Datum. Все права защищены.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted mb-0">Версия 1.0.0</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Custom JS -->
+    <script>
+        // Sidebar toggle functionality
+        $(document).ready(function() {
+            $('#sidebarToggle').click(function() {
+                $('.sidebar').toggleClass('show');
+                $('body').toggleClass('sidebar-open');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            $(document).click(function(event) {
+                if ($(window).width() <= 768) {
+                    if (!$(event.target).closest('.sidebar, #sidebarToggle').length) {
+                        $('.sidebar').removeClass('show');
+                        $('body').removeClass('sidebar-open');
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- PWA Install Banner -->
+    <div id="installBanner" class="alert alert-info alert-dismissible position-fixed bottom-0 start-0 end-0 m-3" style="display: none; z-index: 9999;">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="d-flex align-items-center">
+            <i class="bi bi-download fs-3 me-3"></i>
+            <div class="flex-grow-1">
+                <strong>Установите приложение Datum</strong>
+                <p class="mb-2 small">Работайте оффлайн и получайте быстрый доступ</p>
+                <button id="installBtn" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> Установить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Worker Registration -->
+    <script>
+        // Регистрация Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.error('❌ Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Показать баннер установки
+            document.getElementById('installBanner').style.display = 'block';
+        });
+
+        document.getElementById('installBtn')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+
+                if (outcome === 'accepted') {
+                    console.log('✅ PWA installed');
+                }
+
+                deferredPrompt = null;
+                document.getElementById('installBanner').style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA was installed');
+            document.getElementById('installBanner').style.display = 'none';
+        });
+    </script>
+
+    <!-- Background Sync Manager -->
+    <script src="/static/js/background-sync.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

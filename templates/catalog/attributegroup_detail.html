@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ group.name }} - Datum{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>{{ group.name }}</h1>
+            <p class="text-muted mb-0">
+                Категория: <a href="{% url 'catalog:category_detail' group.category.pk %}">{{ group.category.name }}</a>
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'catalog:attributegroup_update' group.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Редактировать
+            </a>
+            <a href="{% url 'catalog:attributegroup_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> К списку
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Информация</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="200">Код:</th>
+                            <td><code>{{ group.code }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>Категория:</th>
+                            <td>
+                                <a href="{% url 'catalog:category_detail' group.category.pk %}">
+                                    {{ group.category.name }}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Порядок:</th>
+                            <td>{{ group.order }}</td>
+                        </tr>
+                        <tr>
+                            <th>Статус:</th>
+                            <td>
+                                {% if group.is_active %}
+                                <span class="badge bg-success">Активна</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Неактивна</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Создано:</th>
+                            <td>{{ group.created_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Обновлено:</th>
+                            <td>{{ group.updated_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tags"></i> Атрибуты в группе
+                        <span class="badge bg-primary ms-2">{{ group.attributes.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if group.attributes.exists %}
+                    <div class="list-group">
+                        {% for attr in group.attributes.all %}
+                        <a href="{% url 'catalog:attributedefinition_detail' attr.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ attr.name }}</h6>
+                                    <small class="text-muted">
+                                        Тип: <span class="badge bg-info">{{ attr.get_data_type_display }}</span>
+                                        {% if attr.unit %} | Единица: {{ attr.unit }}{% endif %}
+                                        {% if attr.is_required %} | <span class="badge bg-danger">Обязательный</span>{% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge bg-secondary">Порядок: {{ attr.order }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle"></i> В этой группе пока нет атрибутов
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-tools"></i> Действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'catalog:attributedefinition_create' %}?group={{ group.pk }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Добавить атрибут
+                        </a>
+                        <a href="{% url 'catalog:attributegroup_update' group.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Редактировать группу
+                        </a>
+                        <hr>
+                        <a href="{% url 'catalog:attributegroup_delete' group.pk %}" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Удалить группу
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

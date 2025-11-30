@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:brand_list' %}">Бренды</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ object.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'catalog:brand_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'catalog:brand_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'catalog:brand_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о бренде</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Название:</dt>
+                            <dd class="col-sm-7">{{ object.name }}</dd>
+
+                            <dt class="col-sm-5">Код:</dt>
+                            <dd class="col-sm-7"><code>{{ object.code|default:"-" }}</code></dd>
+
+                            <dt class="col-sm-5">Страна производства:</dt>
+                            <dd class="col-sm-7">
+                                {% if object.country %}
+                                <a href="{% url 'geo:country_detail' object.country.pk %}">{{ object.country.name }}</a>
+                                {% else %}-{% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Дата создания:</dt>
+                            <dd class="col-sm-7">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                            <dt class="col-sm-5">Дата обновления:</dt>
+                            <dd class="col-sm-7">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                {% if object.description %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>Описание:</dt>
+                        <dd>{{ object.description }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if object.products.exists %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Товары ({{ object.products.count }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Артикул</th>
+                                <th>Категория</th>
+                                <th>Статус</th>
+                                <th class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in object.products.all %}
+                            <tr>
+                                <td><a href="{% url 'catalog:product_detail' product.pk %}">{{ product.name }}</a></td>
+                                <td><code>{{ product.sku_code|default:"-" }}</code></td>
+                                <td>{{ product.category.name }}</td>
+                                <td>{{ product.get_status_display }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'catalog:product_detail' product.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        {% if object.logo %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Логотип</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ object.logo.url }}" alt="{{ object.name }}" class="img-fluid rounded">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

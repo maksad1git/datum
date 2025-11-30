@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-upload"></i> {{ object.name }}
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'integrations:exportjob_update' object.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'integrations:exportjob_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'integrations:exportjob_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Название:</dt>
+                    <dd class="col-sm-8">{{ object.name }}</dd>
+
+                    <dt class="col-sm-4">Формат:</dt>
+                    <dd class="col-sm-8">{{ object.get_export_format_display }}</dd>
+
+                    <dt class="col-sm-4">Статус:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.status == 'completed' %}
+                            <span class="badge bg-success">Завершен</span>
+                        {% elif object.status == 'processing' %}
+                            <span class="badge bg-warning">Обрабатывается</span>
+                        {% elif object.status == 'failed' %}
+                            <span class="badge bg-danger">Ошибка</span>
+                        {% elif object.status == 'pending' %}
+                            <span class="badge bg-secondary">Ожидает</span>
+                        {% else %}
+                            <span class="badge bg-info">{{ object.get_status_display }}</span>
+                        {% endif %}
+                    </dd>
+
+                    {% if object.description %}
+                    <dt class="col-sm-4">Описание:</dt>
+                    <dd class="col-sm-8">{{ object.description }}</dd>
+                    {% endif %}
+
+                    {% if object.result_file %}
+                    <dt class="col-sm-4">Файл результата:</dt>
+                    <dd class="col-sm-8"><a href="{{ object.result_file.url }}" target="_blank">Скачать файл</a></dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Системная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Создано:</dt>
+                    <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Обновлено:</dt>
+                    <dd class="col-sm-8">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+
+                    {% if object.started_at %}
+                    <dt class="col-sm-4">Начало:</dt>
+                    <dd class="col-sm-8">{{ object.started_at|date:"d.m.Y H:i" }}</dd>
+                    {% endif %}
+
+                    {% if object.completed_at %}
+                    <dt class="col-sm-4">Завершено:</dt>
+                    <dd class="col-sm-8">{{ object.completed_at|date:"d.m.Y H:i" }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if object.config %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Конфигурация (JSON)</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code>{{ object.config|safe }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

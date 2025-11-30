@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+
+{% block title %}Начать визит - Datum{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mobile-first design */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.start-visit-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 15px;
+}
+
+.hero-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+}
+
+.hero-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.hero-subtitle {
+    color: #6c757d;
+    font-size: 16px;
+}
+
+.step-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.step-number {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 35px;
+    font-weight: 700;
+    margin-right: 10px;
+}
+
+.step-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.channel-select, .visit-type-select {
+    min-height: 60px;
+    font-size: 18px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+}
+
+.channel-select:focus, .visit-type-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.outlet-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.outlet-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.outlet-card.selected {
+    border: 3px solid #667eea;
+    background: #f8f9ff;
+}
+
+.outlet-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.outlet-address {
+    color: #718096;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.outlet-info {
+    color: #a0aec0;
+    font-size: 13px;
+}
+
+.visit-type-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.visit-type-card:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.visit-type-card.selected {
+    border: 3px solid #667eea;
+    background: #f8f9ff;
+}
+
+.visit-type-card input[type="radio"] {
+    margin-right: 12px;
+    transform: scale(1.5);
+}
+
+.start-button {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: 15px;
+    font-size: 22px;
+    font-weight: 700;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+    min-height: 70px;
+}
+
+.start-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+}
+
+.start-button:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.add-outlet-link {
+    display: block;
+    background: white;
+    border: 2px dashed #cbd5e0;
+    border-radius: 15px;
+    padding: 25px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.add-outlet-link:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+    color: #667eea;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #a0aec0;
+}
+
+.empty-state-icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+    .hero-card {
+        padding: 20px 15px;
+    }
+
+    .hero-title {
+        font-size: 24px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="start-visit-container">
+    <!-- Hero Section -->
+    <div class="hero-card">
+        <h1 class="hero-title">
+            <i class="bi bi-clipboard-check"></i> Начать визит
+        </h1>
+        <p class="hero-subtitle">Выберите канал и магазин для проверки</p>
+    </div>
+
+    <!-- Form -->
+    <form method="post" action="{% url 'visits:quick_start_visit' %}" id="startVisitForm">
+        {% csrf_token %}
+
+        <!-- Hidden inputs -->
+        <input type="hidden" name="outlet_id" id="selected_outlet_id">
+        <input type="hidden" name="visit_type_id" id="selected_visit_type_id">
+
+        <!-- Step 1: Выбор канала -->
+        <div class="step-card">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                Выберите канал
+            </div>
+            <select class="form-select channel-select" id="channelSelect" onchange="loadOutlets()">
+                <option value="">-- Выберите канал --</option>
+                {% for channel in channels %}
+                <option value="{{ channel.id }}" {% if selected_channel_id|stringformat:"s" == channel.id|stringformat:"s" %}selected{% endif %}>
+                    {{ channel.region.country.name }} / {{ channel.region.name }} - {{ channel.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Step 2: Выбор магазина -->
+        <div class="step-card" id="outletSection" style="{% if not selected_channel_id %}display: none;{% endif %}">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                Выберите магазин
+            </div>
+
+            <div id="outletsList">
+                {% if outlets %}
+                    {% for outlet in outlets %}
+                    <div class="outlet-card" onclick="selectOutlet({{ outlet.id }})">
+                        <input type="radio" name="outlet_radio" value="{{ outlet.id }}" id="outlet_{{ outlet.id }}" style="display: none;">
+
+                        <div class="outlet-name">
+                            <i class="bi bi-shop"></i> {{ outlet.name }}
+                        </div>
+
+                        <div class="outlet-address">
+                            <i class="bi bi-geo-alt"></i> {{ outlet.address }}
+                        </div>
+
+                        <div class="outlet-info">
+                            {{ outlet.channel.region.country.name }} / {{ outlet.channel.region.name }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    {% if selected_channel_id %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="bi bi-shop-window"></i></div>
+                        <p>В этом канале пока нет магазинов</p>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Add New Outlet Link -->
+            <a href="{% url 'geo:outlet_quick_add' %}" class="add-outlet-link">
+                <i class="bi bi-plus-circle" style="font-size: 20px;"></i>
+                Добавить новый магазин
+            </a>
+        </div>
+
+        <!-- Step 3: Выбор типа визита -->
+        <div class="step-card" id="visitTypeSection" style="{% if not selected_channel_id %}display: none;{% endif %}">
+            <div class="step-title">
+                <span class="step-number">3</span>
+                Тип визита
+            </div>
+
+            {% if visit_types %}
+                {% for vt in visit_types %}
+                <div class="visit-type-card" onclick="selectVisitType({{ vt.id }})">
+                    <input type="radio" name="visit_type_radio" value="{{ vt.id }}" id="vt_{{ vt.id }}">
+                    <label for="vt_{{ vt.id }}" style="cursor: pointer; margin: 0;">
+                        <strong>{{ vt.name }}</strong>
+                        {% if vt.description %}
+                        <br><small class="text-muted">{{ vt.description }}</small>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Start Button -->
+        <button type="submit" class="start-button" id="startButton" disabled>
+            <i class="bi bi-play-circle-fill"></i> Начать визит
+        </button>
+    </form>
+
+    <!-- Back Link -->
+    <div class="text-center mt-3">
+        <a href="{% url 'visits:my_visits' %}" style="color: white; text-decoration: none; font-size: 16px;">
+            <i class="bi bi-arrow-left"></i> Назад к визитам
+        </a>
+    </div>
+</div>
+
+<script>
+let selectedOutletId = null;
+let selectedVisitTypeId = null;
+
+function loadOutlets() {
+    const channelId = document.getElementById('channelSelect').value;
+
+    if (channelId) {
+        // Reload page with selected channel
+        window.location.href = `?channel=${channelId}`;
+    } else {
+        // Hide outlet section
+        document.getElementById('outletSection').style.display = 'none';
+        document.getElementById('visitTypeSection').style.display = 'none';
+        updateStartButton();
+    }
+}
+
+function selectOutlet(outletId) {
+    // Deselect all
+    document.querySelectorAll('.outlet-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    // Select clicked
+    event.currentTarget.classList.add('selected');
+    document.getElementById(`outlet_${outletId}`).checked = true;
+    document.getElementById('selected_outlet_id').value = outletId;
+
+    selectedOutletId = outletId;
+    updateStartButton();
+}
+
+function selectVisitType(visitTypeId) {
+    // Deselect all
+    document.querySelectorAll('.visit-type-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    // Select clicked
+    event.currentTarget.classList.add('selected');
+    document.getElementById(`vt_${visitTypeId}`).checked = true;
+    document.getElementById('selected_visit_type_id').value = visitTypeId;
+
+    selectedVisitTypeId = visitTypeId;
+    updateStartButton();
+}
+
+function updateStartButton() {
+    const startButton = document.getElementById('startButton');
+
+    if (selectedOutletId && selectedVisitTypeId) {
+        startButton.disabled = false;
+    } else {
+        startButton.disabled = true;
+    }
+}
+
+// Prevent double submission
+document.getElementById('startVisitForm').addEventListener('submit', function() {
+    const startButton = document.getElementById('startButton');
+    startButton.disabled = true;
+    startButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Создание визита...';
+});
+
+// Show outlet and visit type sections if channel is selected
+window.addEventListener('load', function() {
+    const channelSelect = document.getElementById('channelSelect');
+    if (channelSelect.value) {
+        document.getElementById('outletSection').style.display = 'block';
+        document.getElementById('visitTypeSection').style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

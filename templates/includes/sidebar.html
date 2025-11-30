@@ -1,0 +1,157 @@
+<!-- Sidebar Navigation -->
+<aside class="sidebar">
+    <div class="p-3">
+        <h6 class="text-muted mb-3">Быстрая навигация</h6>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link text-dark" href="{% url 'home' %}">
+                    <i class="bi bi-house-fill me-2"></i>Панель управления
+                </a>
+            </li>
+
+            <!-- География -->
+            <li class="nav-item">
+                <a class="nav-link text-dark d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#geoMenu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-geo-alt-fill me-2"></i>География</span>
+                    <i class="bi bi-chevron-down"></i>
+                </a>
+                <div class="collapse" id="geoMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'geo:globalmarket_list' %}">Глобальные рынки</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'geo:country_list' %}">Страны</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'geo:region_list' %}">Регионы</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'geo:channel_list' %}">Каналы</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'geo:outlet_list' %}">Торговые точки</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Каталог -->
+            <li class="nav-item">
+                <a class="nav-link text-dark d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#catalogMenu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-box-seam me-2"></i>Каталог</span>
+                    <i class="bi bi-chevron-down"></i>
+                </a>
+                <div class="collapse" id="catalogMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'catalog:brand_list' %}">Бренды</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'catalog:category_list' %}">Категории</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'catalog:product_list' %}">Продукты</a></li>
+                        <li class="nav-item">
+                            <hr class="my-2">
+                        </li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'catalog:attributegroup_list' %}"><i class="bi bi-folder2-open me-1"></i>Группы атрибутов</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'catalog:attributedefinition_list' %}"><i class="bi bi-tags me-1"></i>Атрибуты</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Коэффициенты -->
+            <li class="nav-item">
+                <a class="nav-link text-dark d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#coeffMenu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-calculator me-2"></i>Коэффициенты</span>
+                    <i class="bi bi-chevron-down"></i>
+                </a>
+                <div class="collapse" id="coeffMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'coefficients:coefficient_list' %}">Коэффициенты</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'coefficients:metric_list' %}">Метрики</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'coefficients:formula_list' %}">Формулы</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'coefficients:rule_list' %}">Правила</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Визиты -->
+            <li class="nav-item">
+                <a class="nav-link text-dark d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#visitsMenu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-calendar-check me-2"></i>Визиты</span>
+                    <i class="bi bi-chevron-down"></i>
+                </a>
+                <div class="collapse" id="visitsMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'visits:my_visits' %}"><i class="bi bi-person-check me-1"></i>Мои визиты</a></li>
+                        <li class="nav-item">
+                            <hr class="my-2">
+                        </li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'visits:visittype_list' %}">Типы визитов</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'visits:visit_list' %}">Все визиты</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'visits:observation_list' %}">Наблюдения</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'visits:visitmedia_list' %}">Медиа</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Формы -->
+            <li class="nav-item">
+                <a class="nav-link text-dark" href="{% url 'forms:formtemplate_list' %}">
+                    <i class="bi bi-file-text me-2"></i>Формы
+                </a>
+            </li>
+
+            <!-- Аналитика -->
+            <li class="nav-item">
+                <a class="nav-link text-dark d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#analyticsMenu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-graph-up me-2"></i>Аналитика</span>
+                    <i class="bi bi-chevron-down"></i>
+                </a>
+                <div class="collapse" id="analyticsMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'analytics:dashboard_list' %}">Дашборды</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'analytics:report_list' %}">Отчеты</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'analytics:reporttemplate_list' %}">Шаблоны отчетов</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'analytics:filterpreset_list' %}">Фильтры</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Интеграции -->
+            <li class="nav-item">
+                <a class="nav-link text-dark d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#integrationsMenu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-plug me-2"></i>Интеграции</span>
+                    <i class="bi bi-chevron-down"></i>
+                </a>
+                <div class="collapse" id="integrationsMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'integrations:importjob_list' %}">Импорт</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'integrations:exportjob_list' %}">Экспорт</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'integrations:backup_list' %}">Резервные копии</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+
+        <hr class="my-3">
+
+        <h6 class="text-muted mb-3">Дополнительно</h6>
+        <ul class="nav flex-column">
+            <!-- Пользователи -->
+            <li class="nav-item">
+                <a class="nav-link text-dark d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#usersMenu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-people-fill me-2"></i>Пользователи</span>
+                    <i class="bi bi-chevron-down"></i>
+                </a>
+                <div class="collapse" id="usersMenu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'users:user_list' %}">Пользователи</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark small" href="{% url 'users:role_list' %}">Роли</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            {% if user.is_staff %}
+            <li class="nav-item">
+                <a class="nav-link text-dark" href="{% url 'admin:index' %}">
+                    <i class="bi bi-gear-fill me-2"></i>Администрирование
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link text-dark" href="#">
+                    <i class="bi bi-question-circle me-2"></i>Помощь
+                </a>
+            </li>
+        </ul>
+    </div>
+</aside>

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'coefficients:metric_list' %}">Метрики</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ object.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'coefficients:metric_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'coefficients:metric_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'coefficients:metric_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Информация о метрике</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-5">Название:</dt>
+                    <dd class="col-sm-7">{{ object.name }}</dd>
+
+                    <dt class="col-sm-5">Код:</dt>
+                    <dd class="col-sm-7"><code>{{ object.code }}</code></dd>
+
+                    <dt class="col-sm-5">Категория:</dt>
+                    <dd class="col-sm-7"><span class="badge bg-secondary">{{ object.get_category_display }}</span></dd>
+
+                    <dt class="col-sm-5">Тип источника данных:</dt>
+                    <dd class="col-sm-7">
+                        {% if object.source_data_type == 'MON' %}
+                        <span class="badge bg-primary" title="Использует мониторинговые данные">
+                            <i class="bi bi-rulers"></i> Мониторинг
+                        </span>
+                        {% elif object.source_data_type == 'EXP' %}
+                        <span class="badge bg-success" title="Использует экспертные данные">
+                            <i class="bi bi-person-badge"></i> Эксперт
+                        </span>
+                        {% elif object.source_data_type == 'AI' %}
+                        <span class="badge" style="background-color: #6f42c1;" title="Использует данные ИИ">
+                            <i class="bi bi-cpu"></i> ИИ
+                        </span>
+                        {% elif object.source_data_type == 'CUSTOM' %}
+                        <span class="badge bg-warning" title="Смешанные данные">
+                            <i class="bi bi-gear"></i> Custom
+                        </span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-5">Статус:</dt>
+                    <dd class="col-sm-7">
+                        {% if object.is_active %}
+                        <span class="badge bg-success">Активна</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Неактивна</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-5">Формула расчета:</dt>
+                    <dd class="col-sm-7">
+                        {% if object.formula %}
+                        <a href="{% url 'coefficients:formula_detail' object.formula.pk %}">{{ object.formula.name }}</a>
+                        {% else %}-{% endif %}
+                    </dd>
+
+                    <dt class="col-sm-5">Дата создания:</dt>
+                    <dd class="col-sm-7">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-5">Дата обновления:</dt>
+                    <dd class="col-sm-7">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        {% if object.description %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <dt>Описание:</dt>
+                <dd>{{ object.description }}</dd>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if object.coefficients.exists %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Используемые коэффициенты ({{ object.coefficients.count }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Тип данных</th>
+                        <th>Тип значения</th>
+                        <th>Единица измерения</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coefficient in object.coefficients.all %}
+                    <tr>
+                        <td><a href="{% url 'coefficients:coefficient_detail' coefficient.pk %}">{{ coefficient.name }}</a></td>
+                        <td><code>{{ coefficient.code }}</code></td>
+                        <td>
+                            {% if coefficient.data_type == 'MON' %}
+                            <span class="badge bg-primary" title="Мониторинговые данные">
+                                <i class="bi bi-rulers"></i> Мониторинг
+                            </span>
+                            {% elif coefficient.data_type == 'EXP' %}
+                            <span class="badge bg-success" title="Экспертные данные">
+                                <i class="bi bi-person-badge"></i> Эксперт
+                            </span>
+                            {% elif coefficient.data_type == 'AI' %}
+                            <span class="badge" style="background-color: #6f42c1;" title="Данные ИИ">
+                                <i class="bi bi-cpu"></i> ИИ
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ coefficient.get_value_type_display }}</td>
+                        <td>{{ coefficient.unit|default:"-" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'coefficients:coefficient_detail' coefficient.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

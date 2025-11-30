@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактировать {{ object }}{% else %}Создать роль{% endif %} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-person-badge"></i>
+            {% if object %}
+                Редактировать: {{ object }}
+            {% else %}
+                Создать роль
+            {% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Выберите роль из списка</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Сохранить
+                        </button>
+                        <a href="{% if object %}{% url 'users:role_detail' object.pk %}{% else %}{% url 'users:role_list' %}{% endif %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Справка</h6>
+            </div>
+            <div class="card-body">
+                <p class="small"><strong>Администратор</strong> - полный доступ к системе</p>
+                <p class="small"><strong>Аналитик</strong> - работа с отчетами и аналитикой</p>
+                <p class="small"><strong>Эксперт</strong> - проведение экспертиз</p>
+                <p class="small"><strong>Инспектор</strong> - проведение визитов и мониторинга</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

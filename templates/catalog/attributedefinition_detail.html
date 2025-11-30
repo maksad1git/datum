@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ attribute.name }} - Datum{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>{{ attribute.name }}</h1>
+            <p class="text-muted mb-0">
+                {% if attribute.group %}
+                Группа: <a href="{% url 'catalog:attributegroup_detail' attribute.group.pk %}">{{ attribute.group.name }}</a>
+                {% else %}
+                <span class="text-muted">Без группы</span>
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'catalog:attributedefinition_update' attribute.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Редактировать
+            </a>
+            <a href="{% url 'catalog:attributedefinition_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> К списку
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Основная информация</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="200">Название:</th>
+                            <td>{{ attribute.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Код:</th>
+                            <td><code>{{ attribute.code }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>Тип данных:</th>
+                            <td><span class="badge bg-info">{{ attribute.get_data_type_display }}</span></td>
+                        </tr>
+                        {% if attribute.group %}
+                        <tr>
+                            <th>Группа:</th>
+                            <td>
+                                <a href="{% url 'catalog:attributegroup_detail' attribute.group.pk %}">
+                                    {{ attribute.group.name }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% if attribute.unit %}
+                        <tr>
+                            <th>Единица измерения:</th>
+                            <td><span class="badge bg-secondary">{{ attribute.unit }}</span></td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Порядок:</th>
+                            <td>{{ attribute.order }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> Настройки</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="200">Обязательный:</th>
+                            <td>
+                                {% if attribute.is_required %}
+                                <span class="badge bg-danger">Да</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Нет</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Можно фильтровать:</th>
+                            <td>
+                                {% if attribute.is_filterable %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Нет</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Можно искать:</th>
+                            <td>
+                                {% if attribute.is_searchable %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Нет</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Статус:</th>
+                            <td>
+                                {% if attribute.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {% if attribute.data_type == 'choice' or attribute.data_type == 'multi_choice' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Варианты выбора</h5>
+                </div>
+                <div class="card-body">
+                    {% if attribute.choices %}
+                    <ul class="list-group">
+                        {% for choice in attribute.choices %}
+                        <li class="list-group-item">{{ choice }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Варианты выбора не заданы
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if attribute.data_type == 'integer' or attribute.data_type == 'decimal' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> Валидация</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        {% if attribute.min_value %}
+                        <tr>
+                            <th width="200">Минимальное значение:</th>
+                            <td>{{ attribute.min_value }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if attribute.max_value %}
+                        <tr>
+                            <th>Максимальное значение:</th>
+                            <td>{{ attribute.max_value }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if attribute.data_type == 'text' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> Валидация</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        {% if attribute.max_length %}
+                        <tr>
+                            <th width="200">Максимальная длина:</th>
+                            <td>{{ attribute.max_length }} символов</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if attribute.placeholder or attribute.help_text %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-question-circle"></i> Подсказки</h5>
+                </div>
+                <div class="card-body">
+                    {% if attribute.placeholder %}
+                    <p><strong>Плейсхолдер:</strong> <em>{{ attribute.placeholder }}</em></p>
+                    {% endif %}
+                    {% if attribute.help_text %}
+                    <p class="mb-0"><strong>Текст подсказки:</strong> {{ attribute.help_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Метаданные</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <th width="200">Создано:</th>
+                            <td>{{ attribute.created_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Обновлено:</th>
+                            <td>{{ attribute.updated_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-tools"></i> Действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'catalog:attributedefinition_update' attribute.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </a>
+                        <hr>
+                        <a href="{% url 'catalog:attributedefinition_delete' attribute.pk %}" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-box-seam"></i> Использование</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-2">Количество товаров с этим атрибутом:</p>
+                    <h3 class="mb-0">{{ attribute.values.count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

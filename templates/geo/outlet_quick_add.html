@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавить магазин - Datum{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mobile-first optimizations */
+.mobile-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.mobile-form .form-control,
+.mobile-form .form-select,
+.mobile-form .btn {
+    min-height: 60px;
+    font-size: 18px;
+    border-radius: 12px;
+}
+
+.mobile-form .form-label {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.mobile-form textarea {
+    min-height: 120px;
+    font-size: 18px;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 18px;
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    color: white;
+    transform: scale(1.02);
+}
+
+#photoPreview img {
+    max-width: 100%;
+    border-radius: 12px;
+    margin-top: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mobile-form">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="h3 mb-2">
+                    <i class="bi bi-shop-window"></i> Новый магазин
+                </h1>
+                <p class="text-muted mb-0">Быстрая регистрация торговой точки</p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle"></i>
+            <strong>Инструкция:</strong>
+            <ol class="mb-0 mt-2 ps-3">
+                <li>Введите название и адрес магазина</li>
+                <li>Сделайте фото витрины</li>
+                <li>Выберите канал и сохраните</li>
+            </ol>
+        </div>
+
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" id="quickAddForm">
+            {% csrf_token %}
+
+            <!-- Название -->
+            <div class="mb-4">
+                <label for="id_name" class="form-label">
+                    Название магазина <span class="text-danger">*</span>
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="id_name"
+                    name="name"
+                    placeholder="Например: Ювелирный салон Бриллиант"
+                    required
+                    autocomplete="off"
+                >
+            </div>
+
+            <!-- Адрес -->
+            <div class="mb-4">
+                <label for="id_address" class="form-label">
+                    Адрес <span class="text-danger">*</span>
+                </label>
+                <textarea
+                    class="form-control"
+                    id="id_address"
+                    name="address"
+                    rows="3"
+                    placeholder="Улица, дом, торговый центр..."
+                    required
+                ></textarea>
+            </div>
+
+            <!-- Телефон -->
+            <div class="mb-4">
+                <label for="id_contact_phone" class="form-label">
+                    Телефон
+                </label>
+                <input
+                    type="tel"
+                    class="form-control"
+                    id="id_contact_phone"
+                    name="contact_phone"
+                    placeholder="+7 (___) ___-__-__"
+                >
+            </div>
+
+            <!-- Photo Upload -->
+            <div class="mb-4">
+                <label for="id_photo" class="form-label">
+                    Фото витрины <span class="text-danger">*</span>
+                </label>
+                <input
+                    type="file"
+                    class="form-control"
+                    id="id_photo"
+                    name="photo"
+                    accept="image/*"
+                    capture="environment"
+                    onchange="previewPhoto(this)"
+                    required
+                >
+                <small class="text-muted d-block mt-2">
+                    <i class="bi bi-camera"></i> Нажмите для съемки фото витрины
+                </small>
+
+                <!-- Photo preview -->
+                <div id="photoPreview"></div>
+            </div>
+
+            <!-- Channel Selection -->
+            <div class="mb-4">
+                <label for="id_channel" class="form-label">
+                    Канал / Регион <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="id_channel" name="channel" required>
+                    <option value="">Выберите канал...</option>
+                    {% for channel in channels %}
+                    <option value="{{ channel.id }}">
+                        {{ channel.region.country.name }} / {{ channel.region.name }} - {{ channel.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid gap-3 mb-4">
+                <button type="submit" class="btn submit-btn" id="submitBtn">
+                    <i class="bi bi-check-circle-fill"></i> Сохранить магазин
+                </button>
+                <a href="{% url 'visits:start_visit_now' %}" class="btn btn-outline-secondary" style="min-height: 60px; font-size: 18px;">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+            </div>
+        </form>
+
+        <!-- Info card -->
+        <div class="alert alert-light border">
+            <h6 class="mb-2"><i class="bi bi-shield-check"></i> Модерация</h6>
+            <p class="small mb-0 text-muted">
+                После добавления магазин будет проверен администратором.
+                Вы получите уведомление когда можно будет начать визит.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewPhoto(input) {
+    const preview = document.getElementById('photoPreview');
+    preview.innerHTML = '';
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = 'Предпросмотр фото';
+            preview.appendChild(img);
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Form validation
+document.getElementById('quickAddForm').addEventListener('submit', function(e) {
+    // Disable submit button to prevent double submission
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Сохранение...';
+});
+
+// Auto-scroll to first error
+window.addEventListener('load', function() {
+    const firstError = document.querySelector('.is-invalid');
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+</script>
+{% endblock %}

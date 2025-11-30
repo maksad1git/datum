@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление бренда - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:brand_list' %}">Бренды</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:brand_detail' object.pk %}">{{ object.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Удаление</li>
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <h1>Удаление бренда</h1>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Подтверждение удаления</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning" role="alert">
+            <strong>Внимание!</strong> Вы уверены, что хотите удалить бренд?
+        </div>
+
+        <h5>Информация об объекте:</h5>
+        <dl class="row">
+            <dt class="col-sm-3">Название:</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>
+
+            <dt class="col-sm-3">Код:</dt>
+            <dd class="col-sm-9"><code>{{ object.code|default:"-" }}</code></dd>
+
+            <dt class="col-sm-3">Страна производства:</dt>
+            <dd class="col-sm-9">
+                {% if object.country %}{{ object.country.name }}{% else %}-{% endif %}
+            </dd>
+        </dl>
+
+        {% if object.products.exists %}
+        <div class="alert alert-danger mt-3" role="alert">
+            <strong>Связанные объекты:</strong> У этого бренда есть {{ object.products.count }} товар(ов), которые также будут удалены!
+        </div>
+        {% endif %}
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'catalog:brand_detail' object.pk %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Да, удалить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

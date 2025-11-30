@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:product_list' %}">Товары</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ object.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'catalog:product_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'catalog:product_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'catalog:product_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о товаре</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Название:</dt>
+                            <dd class="col-sm-7">{{ object.name }}</dd>
+
+                            <dt class="col-sm-5">Артикул (SKU):</dt>
+                            <dd class="col-sm-7"><code>{{ object.sku_code|default:"-" }}</code></dd>
+
+                            <dt class="col-sm-5">Бренд:</dt>
+                            <dd class="col-sm-7">
+                                <a href="{% url 'catalog:brand_detail' object.brand.pk %}">{{ object.brand.name }}</a>
+                            </dd>
+
+                            <dt class="col-sm-5">Категория:</dt>
+                            <dd class="col-sm-7">
+                                <a href="{% url 'catalog:category_detail' object.category.pk %}">{{ object.category.name }}</a>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Цена:</dt>
+                            <dd class="col-sm-7">{% if object.price %}{{ object.price }}{% else %}-{% endif %}</dd>
+
+                            <dt class="col-sm-5">Вес:</dt>
+                            <dd class="col-sm-7">{% if object.weight %}{{ object.weight }} г{% else %}-{% endif %}</dd>
+
+                            <dt class="col-sm-5">Статус:</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge bg-{% if object.status == 'active' %}success{% elif object.status == 'draft' %}secondary{% else %}warning{% endif %}">
+                                    {{ object.get_status_display }}
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                {% if object.description %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>Описание:</dt>
+                        <dd>{{ object.description }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>Дата создания:</dt>
+                        <dd>{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+                        <dt>Дата обновления:</dt>
+                        <dd>{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if object.attribute_values.exists %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Характеристики товара ({{ object.attribute_values.count }})</h5>
+                <a href="/admin/catalog/productattributevalue/add/?product={{ object.pk }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="bi bi-plus-circle"></i> Добавить
+                </a>
+            </div>
+            <div class="card-body">
+                {% regroup object.attribute_values.all by attribute.group as grouped_attributes %}
+
+                {% for group in grouped_attributes %}
+                    {% if group.grouper %}
+                    <h6 class="text-muted mt-3 mb-2">
+                        <i class="bi bi-tag"></i> {{ group.grouper.name }}
+                    </h6>
+                    {% endif %}
+
+                    <div class="row">
+                        {% for attr_value in group.list %}
+                        <div class="col-md-6 mb-2">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-6 text-end">{{ attr_value.attribute.name }}:</dt>
+                                <dd class="col-sm-6">
+                                    <strong>{{ attr_value.get_value|default:"-" }}</strong>
+                                    {% if attr_value.attribute.unit %}
+                                        <small class="text-muted">{{ attr_value.attribute.unit }}</small>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if not forloop.last %}
+                    <hr class="my-2">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            У этого товара пока нет характеристик.
+            <a href="/admin/catalog/productattributevalue/add/?product={{ object.pk }}" target="_blank">Добавить характеристики</a>
+        </div>
+        {% endif %}
+
+        {% if object.observations.exists %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Наблюдения ({{ object.observations.count }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Визит</th>
+                                <th>Коэффициент</th>
+                                <th>Значение</th>
+                                <th>Тип данных</th>
+                                <th>Дата</th>
+                                <th class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for observation in object.observations.all|slice:":10" %}
+                            <tr>
+                                <td>{{ observation.visit.visit_type.name }}</td>
+                                <td>{{ observation.coefficient.name }}</td>
+                                <td>{{ observation.get_value }}</td>
+                                <td>
+                                    {% if observation.data_source_type == 'MON' %}
+                                    <span class="badge bg-primary" title="Мониторинговые данные">
+                                        <i class="bi bi-rulers"></i> Мониторинг
+                                    </span>
+                                    {% elif observation.data_source_type == 'EXP' %}
+                                    <span class="badge bg-success" title="Экспертные данные">
+                                        <i class="bi bi-person-badge"></i> Эксперт
+                                    </span>
+                                    {% elif observation.data_source_type == 'AI' %}
+                                    <span class="badge" style="background-color: #6f42c1;" title="Данные ИИ">
+                                        <i class="bi bi-cpu"></i> ИИ
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ observation.created_at|date:"d.m.Y" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'visits:visit_detail' observation.visit.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        {% if object.image %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Изображение</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ object.image.url }}" alt="{{ object.name }}" class="img-fluid rounded">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

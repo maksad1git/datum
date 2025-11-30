@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-person-badge"></i> {{ object }}
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'users:role_update' object.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'users:role_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'users:role_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Название:</dt>
+                    <dd class="col-sm-8"><strong>{{ object }}</strong></dd>
+
+                    <dt class="col-sm-4">Код роли:</dt>
+                    <dd class="col-sm-8"><code>{{ object.name }}</code></dd>
+
+                    {% if object.description %}
+                    <dt class="col-sm-4">Описание:</dt>
+                    <dd class="col-sm-8">{{ object.description }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Системная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Создана:</dt>
+                    <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Обновлена:</dt>
+                    <dd class="col-sm-8">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Пользователи с этой ролью</h5>
+            </div>
+            <div class="card-body">
+                {% with users=object.user_set.all %}
+                    {% if users %}
+                        <ul class="list-group">
+                            {% for user in users %}
+                            <li class="list-group-item">
+                                <a href="{% url 'users:user_detail' user.pk %}">{{ user.get_full_name|default:user.username }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">Нет пользователей с этой ролью</p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

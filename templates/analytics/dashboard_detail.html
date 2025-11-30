@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ dashboard.name }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-graph-up"></i> {{ dashboard.name }}
+            <span id="lastUpdated" class="small text-muted"></span>
+        </h1>
+        {% if dashboard.description %}
+        <p class="text-muted">{{ dashboard.description }}</p>
+        {% endif %}
+    </div>
+    <div class="col-auto">
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary btn-sm" onclick="toggleAutoRefresh()" id="autoRefreshBtn">
+                <i id="autoRefreshIcon" class="bi bi-pause-circle"></i>
+                <span id="autoRefreshText">Авто</span>
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="refreshDashboard()">
+                <i class="bi bi-arrow-clockwise"></i> Обновить
+            </button>
+        </div>
+        <a href="{% url 'analytics:dashboard_update' dashboard.pk %}" class="btn btn-warning btn-sm">
+            <i class="bi bi-pencil"></i> Настроить
+        </a>
+        <a href="{% url 'analytics:dashboard_list' %}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Фильтры</h5>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
+                <i class="bi bi-arrow-clockwise"></i> Сбросить
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="get" id="filterForm">
+            <div class="row g-3">
+                <!-- Период -->
+                <div class="col-md-3">
+                    <label class="form-label">Период</label>
+                    <select name="period" class="form-select form-select-sm" onchange="toggleCustomDates()">
+                        <option value="today" {% if filters.period == 'today' %}selected{% endif %}>Сегодня</option>
+                        <option value="yesterday" {% if filters.period == 'yesterday' %}selected{% endif %}>Вчера</option>
+                        <option value="week" {% if filters.period == 'week' %}selected{% endif %}>Эта неделя</option>
+                        <option value="last_week" {% if filters.period == 'last_week' %}selected{% endif %}>Прошлая неделя</option>
+                        <option value="month" {% if filters.period == 'month' %}selected{% endif %}>Этот месяц</option>
+                        <option value="custom" {% if filters.period == 'custom' %}selected{% endif %}>Свой период</option>
+                    </select>
+                </div>
+
+                <!-- Даты (для custom) -->
+                <div class="col-md-3" id="customDates" style="display: {% if filters.period == 'custom' %}block{% else %}none{% endif %};">
+                    <label class="form-label">От - До</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                        <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                    </div>
+                </div>
+
+                <!-- Регион -->
+                <div class="col-md-2">
+                    <label class="form-label">Регион</label>
+                    <select name="region" class="form-select form-select-sm">
+                        <option value="">Все</option>
+                        {% for region in regions %}
+                        <option value="{{ region.id }}" {% if filters.region|stringformat:"s" == region.id|stringformat:"s" %}selected{% endif %}>
+                            {{ region.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Канал -->
+                <div class="col-md-2">
+                    <label class="form-label">Канал</label>
+                    <select name="channel" class="form-select form-select-sm">
+                        <option value="">Все</option>
+                        {% for channel in channels %}
+                        <option value="{{ channel.id }}" {% if filters.channel|stringformat:"s" == channel.id|stringformat:"s" %}selected{% endif %}>
+                            {{ channel.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Кнопка -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-search"></i> Применить
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Виджеты -->
+{% if widgets %}
+<div class="row">
+    {% for widget in widgets %}
+    {% if widget.type == 'metric' %}
+    <!-- Метрика -->
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card border-{{ widget.color }} h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted text-uppercase small mb-2">{{ widget.title }}</h6>
+                <h2 class="display-4 mb-0 text-{{ widget.color }}">
+                    {{ widget.value|floatformat:2 }}
+                    {% if widget.unit %}
+                    <small class="text-muted fs-5">{{ widget.unit }}</small>
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    {% elif widget.type == 'chart' %}
+    <!-- График -->
+    <div class="col-md-6 col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">{{ widget.title }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chart_{{ forloop.counter }}" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+    new Chart(document.getElementById('chart_{{ forloop.counter }}'), {
+        type: '{{ widget.chart_type }}',
+        data: {
+            labels: {{ widget.labels|safe }},
+            datasets: [{
+                label: '{{ widget.title }}',
+                data: {{ widget.values|safe }},
+                backgroundColor: '{{ widget.color }}',
+                borderColor: '{{ widget.color }}',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    </script>
+
+    {% elif widget.type == 'error' %}
+    <!-- Ошибка виджета -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h6 class="text-danger"><i class="bi bi-exclamation-triangle"></i> {{ widget.title }}</h6>
+                <small class="text-muted">{{ widget.error }}</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    <strong>Дашборд не настроен.</strong>
+    <a href="{% url 'analytics:dashboard_update' dashboard.pk %}">Настроить виджеты</a>
+    <hr>
+    <small class="text-muted">
+        <strong>Пример конфигурации (JSON):</strong>
+        <pre class="mb-0 mt-2">{
+  "widgets": [
+    {
+      "type": "metric",
+      "title": "Средняя цена",
+      "coefficient_id": 1,
+      "aggregation": "avg",
+      "unit": "₽",
+      "color": "primary"
+    },
+    {
+      "type": "chart",
+      "title": "Динамика по дням",
+      "coefficient_id": 1,
+      "chart_type": "line",
+      "group_by": "date",
+      "color": "rgba(75, 192, 192, 0.8)"
+    }
+  ]
+}</pre>
+    </small>
+</div>
+{% endif %}
+
+<script>
+let autoRefreshEnabled = false;
+let autoRefreshInterval = null;
+const REFRESH_INTERVAL = 60000; // 60 секунд
+
+function refreshDashboard() {
+    location.reload();
+}
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+
+    const icon = document.getElementById('autoRefreshIcon');
+    const text = document.getElementById('autoRefreshText');
+    const btn = document.getElementById('autoRefreshBtn');
+
+    if (autoRefreshEnabled) {
+        icon.className = 'bi bi-play-circle-fill';
+        text.textContent = 'Авто: ВКЛ';
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-success');
+
+        autoRefreshInterval = setInterval(refreshDashboard, REFRESH_INTERVAL);
+        updateLastRefreshed();
+    } else {
+        icon.className = 'bi bi-pause-circle';
+        text.textContent = 'Авто: ВЫКЛ';
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-secondary');
+
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+    }
+}
+
+function updateLastRefreshed() {
+    const now = new Date();
+    document.getElementById('lastUpdated').textContent =
+        `(обновлено ${now.toLocaleTimeString('ru-RU')})`;
+}
+
+function resetFilters() {
+    window.location.href = window.location.pathname;
+}
+
+function toggleCustomDates() {
+    const period = document.querySelector('[name="period"]').value;
+    const customDates = document.getElementById('customDates');
+    customDates.style.display = period === 'custom' ? 'block' : 'none';
+}
+
+// Показать время загрузки страницы
+updateLastRefreshed();
+</script>
+{% endblock %}

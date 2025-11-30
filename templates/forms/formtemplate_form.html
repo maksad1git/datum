@@ -1,0 +1,587 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редактировать {{ object.name }}{% else %}Создать шаблон формы{% endif %} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-file-text"></i>
+            {% if object %}
+                Редактировать: {{ object.name }}
+            {% else %}
+                Создать шаблон формы
+            {% endif %}
+        </h1>
+    </div>
+</div>
+
+<form method="post" id="formTemplateForm">
+    {% csrf_token %}
+
+    <div class="row">
+        <!-- Левая панель: Основные настройки -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Основные настройки</h5>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Название формы *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.code.id_for_label }}" class="form-label">Код *</label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">{{ form.code.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Уникальный код формы</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.form_type.id_for_label }}" class="form-label">Тип формы</label>
+                        {{ form.form_type }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">Категория</label>
+                        {{ form.category }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.version.id_for_label }}" class="form-label">Версия</label>
+                        {{ form.version }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Описание</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">Статус</label>
+                        {{ form.status }}
+                    </div>
+
+                    <!-- Скрытое поле для JSON -->
+                    <input type="hidden" name="fields_schema" id="fieldsSchemaInput" value="">
+                </div>
+            </div>
+
+            <!-- Панель доступных типов полей -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Добавить поле</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addField('text')">
+                            <i class="bi bi-input-cursor-text"></i> Текстовое поле
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addField('number')">
+                            <i class="bi bi-123"></i> Число
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addField('boolean')">
+                            <i class="bi bi-check-square"></i> Да/Нет
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addField('choice')">
+                            <i class="bi bi-list-ul"></i> Выбор из списка
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addField('date')">
+                            <i class="bi bi-calendar"></i> Дата
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addField('image')">
+                            <i class="bi bi-image"></i> Фото
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addField('textarea')">
+                            <i class="bi bi-textarea-t"></i> Многострочный текст
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая панель: Конструктор полей -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Поля формы</h5>
+                    <span class="badge bg-secondary" id="fieldCount">0 полей</span>
+                </div>
+                <div class="card-body">
+                    <div id="formFieldsContainer" class="sortable-list" style="min-height: 400px;">
+                        <div class="text-center text-muted py-5" id="emptyState">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p>Пока нет полей. Добавьте поля из левой панели.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle"></i> Сохранить форму
+                </button>
+                <a href="{% url 'forms:formtemplate_list' %}" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<style>
+.sortable-list {
+    list-style: none;
+    padding: 0;
+}
+
+.field-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: move;
+    transition: all 0.3s;
+}
+
+.field-item:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.field-item.dragging {
+    opacity: 0.5;
+}
+
+.field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.field-type-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.field-controls {
+    display: flex;
+    gap: 5px;
+}
+</style>
+
+<script>
+let formFields = [];
+let fieldCounter = 0;
+
+// Загрузить существующие поля при редактировании
+{% if object and object.fields_schema %}
+formFields = {{ object.fields_schema|safe }};
+formFields.forEach((field, index) => {
+    field.id = fieldCounter++;
+    renderField(field);
+});
+updateFieldCount();
+{% endif %}
+
+function addField(type) {
+    const field = {
+        id: fieldCounter++,
+        field_type: type,
+        field_name: `field_${fieldCounter}`,
+        label: `Новое поле ${fieldCounter}`,
+        required: false,
+        order: formFields.length,
+        options: type === 'choice' ? [] : undefined
+    };
+
+    formFields.push(field);
+    renderField(field);
+    updateFieldCount();
+    updateEmptyState();
+}
+
+function renderField(field) {
+    const container = document.getElementById('formFieldsContainer');
+
+    const fieldHtml = `
+        <div class="field-item" data-field-id="${field.id}" draggable="true">
+            <div class="field-header">
+                <div>
+                    <span class="badge bg-info field-type-badge">${getFieldTypeLabel(field.field_type)}</span>
+                    <strong class="ms-2">${field.label}</strong>
+                    ${field.required ? '<span class="badge bg-danger ms-1">Обязательное</span>' : ''}
+                </div>
+                <div class="field-controls">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editField(${field.id})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteField(${field.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="field-details">
+                <small class="text-muted">
+                    <strong>Имя поля:</strong> ${field.field_name}
+                    ${field.placeholder ? `<br><strong>Подсказка:</strong> ${field.placeholder}` : ''}
+                    ${field.help_text ? `<br><strong>Справка:</strong> ${field.help_text}` : ''}
+                    ${field.options && field.options.length ? `<br><strong>Варианты:</strong> ${field.options.join(', ')}` : ''}
+                    ${field.validation && Object.keys(field.validation).length ? `<br><strong><i class="bi bi-shield-check"></i> Валидация:</strong> ${getValidationSummary(field.validation, field.field_type)}` : ''}
+                </small>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', fieldHtml);
+}
+
+function getFieldTypeLabel(type) {
+    const labels = {
+        'text': 'Текст',
+        'number': 'Число',
+        'boolean': 'Да/Нет',
+        'choice': 'Выбор',
+        'date': 'Дата',
+        'image': 'Фото',
+        'textarea': 'Текст (многострочный)'
+    };
+    return labels[type] || type;
+}
+
+function getValidationSummary(validation, fieldType) {
+    const rules = [];
+
+    if (fieldType === 'text' || fieldType === 'textarea') {
+        if (validation.min_length) rules.push(`мин. ${validation.min_length} симв.`);
+        if (validation.max_length) rules.push(`макс. ${validation.max_length} симв.`);
+        if (validation.pattern) rules.push(`шаблон: ${validation.pattern}`);
+    } else if (fieldType === 'number') {
+        if (validation.min !== undefined) rules.push(`мин. ${validation.min}`);
+        if (validation.max !== undefined) rules.push(`макс. ${validation.max}`);
+        if (validation.step) rules.push(`шаг ${validation.step}`);
+    } else if (fieldType === 'date') {
+        if (validation.min_date) rules.push(`с ${validation.min_date}`);
+        if (validation.max_date) rules.push(`до ${validation.max_date}`);
+    } else if (fieldType === 'image') {
+        if (validation.max_size) rules.push(`макс. ${validation.max_size}MB`);
+        if (validation.formats) rules.push(`форматы: ${validation.formats}`);
+    }
+
+    return rules.join(', ') || 'нет правил';
+}
+
+function editField(fieldId) {
+    const field = formFields.find(f => f.id === fieldId);
+    if (!field) return;
+
+    const optionsHtml = field.field_type === 'choice' ? `
+        <div class="mb-3">
+            <label class="form-label">Варианты выбора (каждый с новой строки)</label>
+            <textarea class="form-control" id="editOptions" rows="4">${(field.options || []).join('\n')}</textarea>
+        </div>
+    ` : '';
+
+    // Validation rules section based on field type
+    const validation = field.validation || {};
+    let validationHtml = '';
+
+    if (field.field_type === 'text' || field.field_type === 'textarea') {
+        validationHtml = `
+            <div class="card mb-3 bg-light">
+                <div class="card-header">
+                    <strong><i class="bi bi-shield-check"></i> Правила валидации</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Мин. длина</label>
+                            <input type="number" class="form-control form-control-sm" id="editValidationMinLength" value="${validation.min_length || ''}" placeholder="Не задано">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Макс. длина</label>
+                            <input type="number" class="form-control form-control-sm" id="editValidationMaxLength" value="${validation.max_length || ''}" placeholder="Не задано">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Шаблон (regex)</label>
+                        <input type="text" class="form-control form-control-sm" id="editValidationPattern" value="${validation.pattern || ''}" placeholder="Например: ^[A-Z]">
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (field.field_type === 'number') {
+        validationHtml = `
+            <div class="card mb-3 bg-light">
+                <div class="card-header">
+                    <strong><i class="bi bi-shield-check"></i> Правила валидации</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Минимум</label>
+                            <input type="number" class="form-control form-control-sm" id="editValidationMin" value="${validation.min !== undefined ? validation.min : ''}" placeholder="Не задано">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Максимум</label>
+                            <input type="number" class="form-control form-control-sm" id="editValidationMax" value="${validation.max !== undefined ? validation.max : ''}" placeholder="Не задано">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Шаг (step)</label>
+                        <input type="number" class="form-control form-control-sm" id="editValidationStep" value="${validation.step || ''}" placeholder="Например: 0.01">
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (field.field_type === 'date') {
+        validationHtml = `
+            <div class="card mb-3 bg-light">
+                <div class="card-header">
+                    <strong><i class="bi bi-shield-check"></i> Правила валидации</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Мин. дата</label>
+                            <input type="date" class="form-control form-control-sm" id="editValidationMinDate" value="${validation.min_date || ''}">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small">Макс. дата</label>
+                            <input type="date" class="form-control form-control-sm" id="editValidationMaxDate" value="${validation.max_date || ''}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (field.field_type === 'image') {
+        validationHtml = `
+            <div class="card mb-3 bg-light">
+                <div class="card-header">
+                    <strong><i class="bi bi-shield-check"></i> Правила валидации</strong>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="form-label small">Макс. размер (MB)</label>
+                        <input type="number" class="form-control form-control-sm" id="editValidationMaxSize" value="${validation.max_size || ''}" placeholder="Например: 5">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Допустимые форматы</label>
+                        <input type="text" class="form-control form-control-sm" id="editValidationFormats" value="${validation.formats || ''}" placeholder="Например: jpg,png,webp">
+                        <small class="text-muted">Через запятую</small>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    const modalHtml = `
+        <div class="modal fade" id="editFieldModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Редактировать поле</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Название поля *</label>
+                            <input type="text" class="form-control" id="editLabel" value="${field.label}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Имя поля (латиница, без пробелов) *</label>
+                            <input type="text" class="form-control" id="editFieldName" value="${field.field_name}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Подсказка</label>
+                            <input type="text" class="form-control" id="editPlaceholder" value="${field.placeholder || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Текст справки</label>
+                            <input type="text" class="form-control" id="editHelpText" value="${field.help_text || ''}">
+                        </div>
+                        ${optionsHtml}
+                        ${validationHtml}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="editRequired" ${field.required ? 'checked' : ''}>
+                            <label class="form-check-label" for="editRequired">Обязательное поле</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-primary" onclick="saveFieldEdit(${fieldId})">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('editFieldModal'));
+    modal.show();
+
+    document.getElementById('editFieldModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
+
+function saveFieldEdit(fieldId) {
+    const field = formFields.find(f => f.id === fieldId);
+    if (!field) return;
+
+    field.label = document.getElementById('editLabel').value;
+    field.field_name = document.getElementById('editFieldName').value;
+    field.placeholder = document.getElementById('editPlaceholder').value;
+    field.help_text = document.getElementById('editHelpText').value;
+    field.required = document.getElementById('editRequired').checked;
+
+    if (field.field_type === 'choice') {
+        const optionsText = document.getElementById('editOptions').value;
+        field.options = optionsText.split('\n').filter(o => o.trim());
+    }
+
+    // Save validation rules based on field type
+    field.validation = {};
+
+    if (field.field_type === 'text' || field.field_type === 'textarea') {
+        const minLength = document.getElementById('editValidationMinLength')?.value;
+        const maxLength = document.getElementById('editValidationMaxLength')?.value;
+        const pattern = document.getElementById('editValidationPattern')?.value;
+
+        if (minLength) field.validation.min_length = parseInt(minLength);
+        if (maxLength) field.validation.max_length = parseInt(maxLength);
+        if (pattern) field.validation.pattern = pattern;
+    } else if (field.field_type === 'number') {
+        const min = document.getElementById('editValidationMin')?.value;
+        const max = document.getElementById('editValidationMax')?.value;
+        const step = document.getElementById('editValidationStep')?.value;
+
+        if (min !== '') field.validation.min = parseFloat(min);
+        if (max !== '') field.validation.max = parseFloat(max);
+        if (step) field.validation.step = parseFloat(step);
+    } else if (field.field_type === 'date') {
+        const minDate = document.getElementById('editValidationMinDate')?.value;
+        const maxDate = document.getElementById('editValidationMaxDate')?.value;
+
+        if (minDate) field.validation.min_date = minDate;
+        if (maxDate) field.validation.max_date = maxDate;
+    } else if (field.field_type === 'image') {
+        const maxSize = document.getElementById('editValidationMaxSize')?.value;
+        const formats = document.getElementById('editValidationFormats')?.value;
+
+        if (maxSize) field.validation.max_size = parseFloat(maxSize);
+        if (formats) field.validation.formats = formats;
+    }
+
+    // Remove validation object if empty
+    if (Object.keys(field.validation).length === 0) {
+        delete field.validation;
+    }
+
+    // Перерисовать поле
+    const fieldElement = document.querySelector(`[data-field-id="${fieldId}"]`);
+    fieldElement.remove();
+    renderField(field);
+
+    bootstrap.Modal.getInstance(document.getElementById('editFieldModal')).hide();
+}
+
+function deleteField(fieldId) {
+    if (!confirm('Удалить это поле?')) return;
+
+    formFields = formFields.filter(f => f.id !== fieldId);
+    document.querySelector(`[data-field-id="${fieldId}"]`).remove();
+    updateFieldCount();
+    updateEmptyState();
+}
+
+function updateFieldCount() {
+    document.getElementById('fieldCount').textContent = `${formFields.length} ${formFields.length === 1 ? 'поле' : 'полей'}`;
+}
+
+function updateEmptyState() {
+    const emptyState = document.getElementById('emptyState');
+    if (formFields.length === 0) {
+        emptyState.style.display = 'block';
+    } else {
+        emptyState.style.display = 'none';
+    }
+}
+
+// Сохранение формы
+document.getElementById('formTemplateForm').addEventListener('submit', function(e) {
+    // Обновить order
+    formFields.forEach((field, index) => {
+        field.order = index;
+        delete field.id; // Удалить временный ID
+    });
+
+    // Сохранить в скрытое поле
+    document.getElementById('fieldsSchemaInput').value = JSON.stringify(formFields);
+});
+
+// Drag and drop
+const container = document.getElementById('formFieldsContainer');
+container.addEventListener('dragstart', function(e) {
+    if (e.target.classList.contains('field-item')) {
+        e.target.classList.add('dragging');
+    }
+});
+
+container.addEventListener('dragend', function(e) {
+    if (e.target.classList.contains('field-item')) {
+        e.target.classList.remove('dragging');
+    }
+});
+
+container.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(container, e.clientY);
+    const dragging = document.querySelector('.dragging');
+    if (afterElement == null) {
+        container.appendChild(dragging);
+    } else {
+        container.insertBefore(dragging, afterElement);
+    }
+
+    // Обновить order в массиве
+    const elements = container.querySelectorAll('.field-item');
+    elements.forEach((el, index) => {
+        const fieldId = parseInt(el.getAttribute('data-field-id'));
+        const field = formFields.find(f => f.id === fieldId);
+        if (field) field.order = index;
+    });
+});
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.field-item:not(.dragging)')];
+
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+updateEmptyState();
+</script>
+{% endblock %}

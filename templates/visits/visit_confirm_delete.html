@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление визита - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'visits:visit_list' %}">Визиты</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'visits:visit_detail' object.pk %}">Визит #{{ object.pk }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Удаление</li>
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <h1>Удаление визита</h1>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Подтверждение удаления</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning" role="alert">
+            <strong>Внимание!</strong> Вы уверены, что хотите удалить визит?
+        </div>
+
+        <h5>Информация об объекте:</h5>
+        <dl class="row">
+            <dt class="col-sm-3">Тип визита:</dt>
+            <dd class="col-sm-9">{{ object.visit_type.name }}</dd>
+
+            <dt class="col-sm-3">Точка сбыта:</dt>
+            <dd class="col-sm-9">{{ object.outlet.name }}</dd>
+
+            <dt class="col-sm-3">Исполнитель:</dt>
+            <dd class="col-sm-9">{{ object.user.get_full_name|default:object.user.username }}</dd>
+
+            <dt class="col-sm-3">Плановая дата:</dt>
+            <dd class="col-sm-9">{% if object.planned_date %}{{ object.planned_date|date:"d.m.Y H:i" }}{% else %}-{% endif %}</dd>
+
+            <dt class="col-sm-3">Статус:</dt>
+            <dd class="col-sm-9">{{ object.get_status_display }}</dd>
+        </dl>
+
+        {% if object.observations.exists or object.media.exists %}
+        <div class="alert alert-danger mt-3" role="alert">
+            <strong>Связанные объекты:</strong>
+            <ul class="mb-0">
+                {% if object.observations.exists %}
+                <li>У этого визита есть {{ object.observations.count }} наблюдений, которые также будут удалены!</li>
+                {% endif %}
+                {% if object.media.exists %}
+                <li>У этого визита есть {{ object.media.count }} медиа файлов, которые также будут удалены!</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'visits:visit_detail' object.pk %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Отмена
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Да, удалить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

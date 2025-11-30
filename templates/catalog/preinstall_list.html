@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Предустановленные категории - Datum{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-download"></i> Предустановленные категории</h1>
+            <p class="text-muted">Загрузите готовые наборы категорий и атрибутов одним кликом</p>
+        </div>
+        <a href="{% url 'catalog:category_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> К категориям
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if presets %}
+    <div class="row g-4">
+        {% for preset in presets %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 {% if preset.is_installed %}border-success{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="me-3" style="font-size: 2rem;">
+                            <i class="bi bi-{{ preset.icon }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">
+                                {{ preset.name }}
+                                {% if preset.is_installed %}
+                                <span class="badge bg-success ms-2">
+                                    <i class="bi bi-check-circle"></i> Установлено
+                                </span>
+                                {% endif %}
+                            </h5>
+                            <p class="text-muted small mb-0">Версия: {{ preset.version }}</p>
+                        </div>
+                    </div>
+
+                    <p class="card-text text-muted">
+                        {{ preset.description }}
+                    </p>
+
+                    <div class="mt-auto">
+                        {% if preset.is_installed %}
+                        <button class="btn btn-outline-success w-100" disabled>
+                            <i class="bi bi-check-circle"></i> Уже установлено
+                        </button>
+                        {% else %}
+                        <form method="post" action="{% url 'catalog:preinstall_load' preset.file %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary w-100" onclick="return confirm('Загрузить категорию {{ preset.name }}?')">
+                                <i class="bi bi-download"></i> Загрузить
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Нет доступных предустановок. Файлы должны находиться в папке <code>catalog/preinstall/</code>
+    </div>
+    {% endif %}
+
+    <div class="mt-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-question-circle"></i> Как это работает?</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li class="mb-2">
+                        <strong>Выберите категорию</strong> из списка выше
+                    </li>
+                    <li class="mb-2">
+                        <strong>Нажмите "Загрузить"</strong> - система автоматически создаст:
+                        <ul>
+                            <li>Иерархию категорий</li>
+                            <li>Группы атрибутов</li>
+                            <li>Все необходимые атрибуты с правильными типами данных</li>
+                        </ul>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Начните добавлять товары</strong> с уже готовыми характеристиками
+                    </li>
+                </ol>
+
+                <div class="alert alert-warning mt-3 mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>Внимание:</strong>
+                    Повторная загрузка одной и той же категории невозможна.
+                    Если нужно переустановить категорию, сначала удалите её через админ-панель.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

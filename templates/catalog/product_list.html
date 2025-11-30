@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}Товары - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Товары</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Товары</h1>
+    <div>
+        <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel" aria-expanded="false" aria-controls="filterPanel">
+            <i class="bi bi-funnel"></i> Фильтры
+        </button>
+        <a href="{% url 'catalog:product_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать новый
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Filter Sidebar -->
+    <div class="col-md-3">
+        <div class="collapse show" id="filterPanel">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-funnel"></i> Фильтры</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'catalog:product_list' %}" id="filterForm">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label class="form-label">Поиск</label>
+                            <input type="text" name="search" class="form-control"
+                                   placeholder="Название или артикул"
+                                   value="{{ current_filters.search }}">
+                        </div>
+
+                        <!-- Brand Filter -->
+                        <div class="mb-3">
+                            <label class="form-label">Бренд</label>
+                            <select name="brand" class="form-select">
+                                <option value="">Все бренды</option>
+                                {% for brand in brands %}
+                                <option value="{{ brand.id }}" {% if current_filters.brand == brand.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ brand.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Category Filter -->
+                        <div class="mb-3">
+                            <label class="form-label">Категория</label>
+                            <select name="category" class="form-select" id="categoryFilter">
+                                <option value="">Все категории</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if current_filters.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="mb-3">
+                            <label class="form-label">Статус</label>
+                            <select name="status" class="form-select">
+                                <option value="">Все статусы</option>
+                                <option value="active" {% if current_filters.status == 'active' %}selected{% endif %}>Активный</option>
+                                <option value="draft" {% if current_filters.status == 'draft' %}selected{% endif %}>Черновик</option>
+                                <option value="archived" {% if current_filters.status == 'archived' %}selected{% endif %}>Архивный</option>
+                            </select>
+                        </div>
+
+                        <!-- Attribute Filters -->
+                        {% if filterable_attributes %}
+                        <hr>
+                        <h6 class="text-muted mb-3">Характеристики</h6>
+
+                        {% for attr in filterable_attributes %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ attr.name }}</label>
+
+                            {% if attr.data_type == 'choice' %}
+                            <select name="attr_{{ attr.id }}" class="form-select">
+                                <option value="">Не важно</option>
+                                {% for choice in attr.choices %}
+                                <option value="{{ choice }}">{{ choice }}</option>
+                                {% endfor %}
+                            </select>
+
+                            {% elif attr.data_type == 'boolean' %}
+                            <select name="attr_{{ attr.id }}" class="form-select">
+                                <option value="">Не важно</option>
+                                <option value="1">Да</option>
+                                <option value="0">Нет</option>
+                            </select>
+
+                            {% elif attr.data_type == 'integer' or attr.data_type == 'decimal' %}
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="number" name="attr_{{ attr.id }}_min" class="form-control form-control-sm"
+                                           placeholder="От{% if attr.unit %} {{ attr.unit }}{% endif %}"
+                                           step="{% if attr.data_type == 'decimal' %}0.01{% else %}1{% endif %}">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" name="attr_{{ attr.id }}_max" class="form-control form-control-sm"
+                                           placeholder="До{% if attr.unit %} {{ attr.unit }}{% endif %}"
+                                           step="{% if attr.data_type == 'decimal' %}0.01{% else %}1{% endif %}">
+                                </div>
+                            </div>
+
+                            {% else %}
+                            <input type="text" name="attr_{{ attr.id }}" class="form-control"
+                                   placeholder="Введите значение">
+                            {% endif %}
+
+                            {% if attr.unit and attr.data_type != 'choice' and attr.data_type != 'boolean' %}
+                            <small class="form-text text-muted">{{ attr.unit }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Применить
+                            </button>
+                            <a href="{% url 'catalog:product_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Сбросить
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product List -->
+    <div class="col-md-9">
+        <!-- Active Filters Display -->
+        {% if current_filters %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <strong>Активные фильтры:</strong>
+            {% if current_filters.search %}
+                <span class="badge bg-primary">Поиск: {{ current_filters.search }}</span>
+            {% endif %}
+            {% if current_filters.brand %}
+                <span class="badge bg-primary">Бренд: {{ current_filters.brand }}</span>
+            {% endif %}
+            {% if current_filters.category %}
+                <span class="badge bg-primary">Категория: {{ current_filters.category }}</span>
+            {% endif %}
+            {% if current_filters.status %}
+                <span class="badge bg-primary">Статус: {{ current_filters.status }}</span>
+            {% endif %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Бренд</th>
+                                <th>Категория</th>
+                                <th>Артикул</th>
+                                <th>Цена</th>
+                                <th>Статус</th>
+                                <th class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in object_list %}
+                            <tr>
+                                <td><a href="{% url 'catalog:product_detail' product.pk %}">{{ product.name }}</a></td>
+                                <td><a href="{% url 'catalog:brand_detail' product.brand.pk %}">{{ product.brand.name }}</a></td>
+                                <td><a href="{% url 'catalog:category_detail' product.category.pk %}">{{ product.category.name }}</a></td>
+                                <td><code>{{ product.sku_code|default:"-" }}</code></td>
+                                <td>{% if product.price %}{{ product.price }}{% else %}-{% endif %}</td>
+                                <td>
+                                    <span class="badge bg-{% if product.status == 'active' %}success{% elif product.status == 'draft' %}secondary{% else %}warning{% endif %}">
+                                        {{ product.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'catalog:product_detail' product.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-outline-secondary" title="Редактировать">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">Нет данных</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1">Первая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

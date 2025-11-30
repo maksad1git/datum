@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Визит {{ object.pk }} - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'visits:visit_list' %}">Визиты</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Визит #{{ object.pk }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ object.visit_type.name }} - {{ object.outlet.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'visits:visit_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'visits:visit_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'visits:visit_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о визите</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Тип визита:</dt>
+                            <dd class="col-sm-7">
+                                <a href="{% url 'visits:visittype_detail' object.visit_type.pk %}">{{ object.visit_type.name }}</a>
+                            </dd>
+
+                            <dt class="col-sm-5">Точка сбыта:</dt>
+                            <dd class="col-sm-7">
+                                <a href="{% url 'geo:outlet_detail' object.outlet.pk %}">{{ object.outlet.name }}</a>
+                            </dd>
+
+                            <dt class="col-sm-5">Исполнитель:</dt>
+                            <dd class="col-sm-7">{{ object.user.get_full_name|default:object.user.username }}</dd>
+
+                            <dt class="col-sm-5">Статус:</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge bg-{% if object.status == 'completed' %}success{% elif object.status == 'in_progress' %}primary{% elif object.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                                    {{ object.get_status_display }}
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-5">Тип визита:</dt>
+                            <dd class="col-sm-7">
+                                {% if object.data_source_type == 'MON' %}
+                                <span class="badge bg-primary" title="Мониторинговый визит">
+                                    <i class="bi bi-rulers"></i> Мониторинг
+                                </span>
+                                {% elif object.data_source_type == 'EXP' %}
+                                <span class="badge bg-success" title="Экспертный визит">
+                                    <i class="bi bi-person-badge"></i> Эксперт
+                                </span>
+                                {% elif object.data_source_type == 'AI' %}
+                                <span class="badge" style="background-color: #6f42c1;" title="Визит с ИИ">
+                                    <i class="bi bi-cpu"></i> ИИ
+                                </span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Плановая дата:</dt>
+                            <dd class="col-sm-7">{% if object.planned_date %}{{ object.planned_date|date:"d.m.Y H:i" }}{% else %}-{% endif %}</dd>
+
+                            <dt class="col-sm-5">Дата начала:</dt>
+                            <dd class="col-sm-7">{% if object.start_date %}{{ object.start_date|date:"d.m.Y H:i" }}{% else %}-{% endif %}</dd>
+
+                            <dt class="col-sm-5">Дата окончания:</dt>
+                            <dd class="col-sm-7">{% if object.end_date %}{{ object.end_date|date:"d.m.Y H:i" }}{% else %}-{% endif %}</dd>
+
+                            <dt class="col-sm-5">Дата создания:</dt>
+                            <dd class="col-sm-7">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                {% if object.latitude and object.longitude %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>GPS координаты:</dt>
+                        <dd>{{ object.latitude }}, {{ object.longitude }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if object.notes %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <dt>Комментарии:</dt>
+                        <dd>{{ object.notes }}</dd>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if object.observations.exists %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Наблюдения ({{ object.observations.count }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Коэффициент</th>
+                                <th>Товар</th>
+                                <th>Значение</th>
+                                <th>Тип данных</th>
+                                <th>Комментарии</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for observation in object.observations.all %}
+                            <tr>
+                                <td>{{ observation.coefficient.name }}</td>
+                                <td>
+                                    {% if observation.product %}
+                                    <a href="{% url 'catalog:product_detail' observation.product.pk %}">{{ observation.product.name }}</a>
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td>{{ observation.get_value }}</td>
+                                <td>
+                                    {% if observation.data_source_type == 'MON' %}
+                                    <span class="badge bg-primary" title="Мониторинговые данные">
+                                        <i class="bi bi-rulers"></i> Мониторинг
+                                    </span>
+                                    {% elif observation.data_source_type == 'EXP' %}
+                                    <span class="badge bg-success" title="Экспертные данные">
+                                        <i class="bi bi-person-badge"></i> Эксперт
+                                    </span>
+                                    {% elif observation.data_source_type == 'AI' %}
+                                    <span class="badge" style="background-color: #6f42c1;" title="Данные ИИ">
+                                        <i class="bi bi-cpu"></i> ИИ
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ observation.notes|truncatewords:10 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if object.media.exists %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Медиа файлы ({{ object.media.count }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for media in object.media.all %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                {% if media.media_type == 'photo' %}
+                                <img src="{{ media.file.url }}" alt="{{ media.title }}" class="img-fluid rounded">
+                                {% else %}
+                                <i class="bi bi-file-earmark text-muted" style="font-size: 3rem;"></i>
+                                <p class="mt-2">{{ media.get_media_type_display }}</p>
+                                {% endif %}
+                                {% if media.title %}<p class="mb-0 mt-2">{{ media.title }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        {% if object.signature %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Подпись</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ object.signature.url }}" alt="Подпись" class="img-fluid rounded">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'geo:channel_list' %}">Каналы сбыта</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ object.name }}</h1>
+    <div class="btn-group" role="group">
+        <a href="{% url 'geo:channel_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'geo:channel_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'geo:channel_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> К списку
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Информация о канале сбыта</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">Название:</dt>
+                    <dd class="col-sm-8">{{ object.name }}</dd>
+
+                    <dt class="col-sm-4">Код:</dt>
+                    <dd class="col-sm-8"><code>{{ object.code }}</code></dd>
+
+                    <dt class="col-sm-4">Регион:</dt>
+                    <dd class="col-sm-8">
+                        <a href="{% url 'geo:region_detail' object.region.pk %}">{{ object.region.name }}</a>
+                    </dd>
+
+                    <dt class="col-sm-4">Тип канала:</dt>
+                    <dd class="col-sm-8">{{ object.get_type_display }}</dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">Дата создания:</dt>
+                    <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Дата обновления:</dt>
+                    <dd class="col-sm-8">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        {% if object.description %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <dt>Описание:</dt>
+                <dd>{{ object.description }}</dd>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if object.outlets.exists %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Точки сбыта ({{ object.outlets.count }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Адрес</th>
+                        <th>Статус</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for outlet in object.outlets.all %}
+                    <tr>
+                        <td><a href="{% url 'geo:outlet_detail' outlet.pk %}">{{ outlet.name }}</a></td>
+                        <td><code>{{ outlet.code }}</code></td>
+                        <td>{{ outlet.address|truncatewords:10 }}</td>
+                        <td>{{ outlet.get_status_display }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'geo:outlet_detail' outlet.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

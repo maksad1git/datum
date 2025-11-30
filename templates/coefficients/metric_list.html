@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Метрики - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Метрики</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Метрики</h1>
+    <a href="{% url 'coefficients:metric_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Создать новую
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Категория</th>
+                        <th>Коэффициентов</th>
+                        <th>Статус</th>
+                        <th>Дата создания</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for metric in object_list %}
+                    <tr>
+                        <td><a href="{% url 'coefficients:metric_detail' metric.pk %}">{{ metric.name }}</a></td>
+                        <td><code>{{ metric.code }}</code></td>
+                        <td><span class="badge bg-secondary">{{ metric.get_category_display }}</span></td>
+                        <td>{{ metric.coefficients.count }}</td>
+                        <td>
+                            {% if metric.is_active %}
+                            <span class="badge bg-success">Активна</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Неактивна</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ metric.created_at|date:"d.m.Y" }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'coefficients:metric_detail' metric.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'coefficients:metric_update' metric.pk %}" class="btn btn-outline-secondary" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'coefficients:metric_delete' metric.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Нет данных</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1">Первая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Панели аналитики - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-graph-up"></i> Панели аналитики
+        </h1>
+        <p class="text-muted">Управление дашбордами и отчетами</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'analytics:dashboard_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать панель
+        </a>
+    </div>
+</div>
+
+{% if object_list %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Статус</th>
+                        <th>Создан</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dashboard in object_list %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'analytics:dashboard_detail' dashboard.pk %}">
+                                {{ dashboard.name }}
+                            </a>
+                        </td>
+                        <td>{{ dashboard.code }}</td>
+                        <td>
+                            {% if dashboard.is_active %}
+                                <span class="badge bg-success">Активна</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Неактивна</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ dashboard.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'analytics:dashboard_detail' dashboard.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'analytics:dashboard_update' dashboard.pk %}" class="btn btn-outline-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'analytics:dashboard_delete' dashboard.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> Нет панелей аналитики. <a href="{% url 'analytics:dashboard_create' %}">Создать первую панель</a>
+</div>
+{% endif %}
+{% endblock %}

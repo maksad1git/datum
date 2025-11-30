@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Наблюдение #{{ object.pk }} - Datum{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h2">
+            <i class="bi bi-eye-fill"></i> Наблюдение #{{ object.pk }}
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'visits:observation_update' object.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'visits:observation_delete' object.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        <a href="{% url 'visits:observation_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Визит:</dt>
+                    <dd class="col-sm-8">
+                        <a href="{% url 'visits:visit_detail' object.visit.pk %}">{{ object.visit }}</a>
+                    </dd>
+
+                    <dt class="col-sm-4">Коэффициент:</dt>
+                    <dd class="col-sm-8">{{ object.coefficient.name }}</dd>
+
+                    {% if object.product %}
+                    <dt class="col-sm-4">Продукт:</dt>
+                    <dd class="col-sm-8">
+                        <a href="{% url 'catalog:product_detail' object.product.pk %}">{{ object.product }}</a>
+                    </dd>
+                    {% endif %}
+
+                    <dt class="col-sm-4">Значение:</dt>
+                    <dd class="col-sm-8">{{ object.get_value }}</dd>
+
+                    <dt class="col-sm-4">Тип данных:</dt>
+                    <dd class="col-sm-8">
+                        {% if object.data_source_type == 'MON' %}
+                        <span class="badge bg-primary" title="Мониторинговые данные">
+                            <i class="bi bi-rulers"></i> Мониторинг
+                        </span>
+                        {% elif object.data_source_type == 'EXP' %}
+                        <span class="badge bg-success" title="Экспертные данные">
+                            <i class="bi bi-person-badge"></i> Эксперт
+                        </span>
+                        {% elif object.data_source_type == 'AI' %}
+                        <span class="badge" style="background-color: #6f42c1;" title="Данные ИИ">
+                            <i class="bi bi-cpu"></i> ИИ
+                        </span>
+                        {% endif %}
+                    </dd>
+
+                    {% if object.notes %}
+                    <dt class="col-sm-4">Примечания:</dt>
+                    <dd class="col-sm-8">{{ object.notes }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Системная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Создано:</dt>
+                    <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                    <dt class="col-sm-4">Обновлено:</dt>
+                    <dd class="col-sm-8">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if object.data %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Дополнительные данные (JSON)</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code>{{ object.data|safe }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
