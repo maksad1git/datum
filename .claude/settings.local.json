@@ -23,7 +23,12 @@
       "Bash(pkill:*)",
       "Bash(./venv_datum/Scripts/pip:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(del CHANGELOG.md CHANGELOG_DATA_TYPES.md DATA_SOURCE_TYPES.md DEVELOPMENT_ROADMAP.md FONON_PRODUCTION_READY.md IMPLEMENTED_FEATURES.md MYSTERY_SHOPPER_FLOW.md PROJECT_STATUS.md QUICK_START.md README.md project_log.md)"
     ],
     "deny": [],
     "ask": []
