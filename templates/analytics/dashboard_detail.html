@@ -45,8 +45,18 @@
     <div class="card-body">
         <form method="get" id="filterForm">
             <div class="row g-3">
+                <!-- Тип данных (ВАЖНО - в первую очередь!) -->
+                <div class="col-md-2">
+                    <label class="form-label"><strong>Тип данных</strong></label>
+                    <select name="data_type" class="form-select form-select-sm">
+                        <option value="MON" {% if filters.data_type == 'MON' or not filters.data_type %}selected{% endif %}>📊 Мониторинговые</option>
+                        <option value="EXP" {% if filters.data_type == 'EXP' %}selected{% endif %}>👤 Экспертные</option>
+                        <option value="AI" {% if filters.data_type == 'AI' %}selected{% endif %}>🤖 Данные ИИ</option>
+                    </select>
+                </div>
+
                 <!-- Период -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Период</label>
                     <select name="period" class="form-select form-select-sm" onchange="toggleCustomDates()">
                         <option value="today" {% if filters.period == 'today' %}selected{% endif %}>Сегодня</option>
@@ -66,12 +76,27 @@
                         <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
                     </div>
                 </div>
+            </div>
+
+            <div class="row g-3 mt-2">
+                <!-- Страна -->
+                <div class="col-md-2">
+                    <label class="form-label">🌍 Страна</label>
+                    <select name="country" class="form-select form-select-sm">
+                        <option value="">Все страны</option>
+                        {% for country in countries %}
+                        <option value="{{ country.id }}" {% if filters.country|stringformat:"s" == country.id|stringformat:"s" %}selected{% endif %}>
+                            {{ country.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
                 <!-- Регион -->
                 <div class="col-md-2">
-                    <label class="form-label">Регион</label>
+                    <label class="form-label">🏙️ Город/Регион</label>
                     <select name="region" class="form-select form-select-sm">
-                        <option value="">Все</option>
+                        <option value="">Все регионы</option>
                         {% for region in regions %}
                         <option value="{{ region.id }}" {% if filters.region|stringformat:"s" == region.id|stringformat:"s" %}selected{% endif %}>
                             {{ region.name }}
@@ -82,9 +107,9 @@
 
                 <!-- Канал -->
                 <div class="col-md-2">
-                    <label class="form-label">Канал</label>
+                    <label class="form-label">📢 Канал сбыта</label>
                     <select name="channel" class="form-select form-select-sm">
-                        <option value="">Все</option>
+                        <option value="">Все каналы</option>
                         {% for channel in channels %}
                         <option value="{{ channel.id }}" {% if filters.channel|stringformat:"s" == channel.id|stringformat:"s" %}selected{% endif %}>
                             {{ channel.name }}
@@ -93,10 +118,23 @@
                     </select>
                 </div>
 
+                <!-- Торговая точка -->
+                <div class="col-md-5">
+                    <label class="form-label">🏪 Торговая точка</label>
+                    <select name="outlet" class="form-select form-select-sm">
+                        <option value="">Все точки</option>
+                        {% for outlet in outlets %}
+                        <option value="{{ outlet.id }}" {% if filters.outlet|stringformat:"s" == outlet.id|stringformat:"s" %}selected{% endif %}>
+                            {{ outlet.name }} ({{ outlet.channel.name }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <!-- Кнопка -->
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-1 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary btn-sm w-100">
-                        <i class="bi bi-search"></i> Применить
+                        <i class="bi bi-search"></i>
                     </button>
                 </div>
             </div>
@@ -125,7 +163,7 @@
     </div>
 
     {% elif widget.type == 'chart' %}
-    <!-- График -->
+    <!-- График Chart.js -->
     <div class="col-md-6 col-lg-6 mb-4">
         <div class="card h-100">
             <div class="card-header bg-light">
@@ -137,36 +175,136 @@
         </div>
     </div>
     <script>
-    new Chart(document.getElementById('chart_{{ forloop.counter }}'), {
-        type: '{{ widget.chart_type }}',
-        data: {
-            labels: {{ widget.labels|safe }},
-            datasets: [{
-                label: '{{ widget.title }}',
-                data: {{ widget.values|safe }},
-                backgroundColor: '{{ widget.color }}',
-                borderColor: '{{ widget.color }}',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    (function() {
+        const chartType = '{{ widget.chart_type }}';
+        const labels = {{ widget.labels|safe }};
+        const values = {{ widget.values|safe }};
+        const color = '{{ widget.color }}';
+
+        // Конфигурация для разных типов графиков
+        let chartConfig = {
+            type: chartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '{{ widget.title }}',
+                    data: values,
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: 2
+                }]
             },
-            scales: {
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: ['pie', 'doughnut', 'polarArea', 'radar'].includes(chartType)
+                    }
+                }
+            }
+        };
+
+        // Настройки для линейных и столбчатых графиков
+        if (['line', 'bar'].includes(chartType)) {
+            chartConfig.data.datasets[0].tension = 0.4;
+            chartConfig.data.datasets[0].fill = false;
+            chartConfig.options.scales = {
                 y: {
                     beginAtZero: true
                 }
-            }
+            };
         }
-    });
+
+        // Настройки для горизонтального бара
+        if (chartType === 'horizontalBar') {
+            chartConfig.type = 'bar';
+            chartConfig.options.indexAxis = 'y';
+            chartConfig.options.scales = {
+                x: {
+                    beginAtZero: true
+                }
+            };
+        }
+
+        // Настройки для круговых диаграмм
+        if (['pie', 'doughnut', 'polarArea'].includes(chartType)) {
+            // Генерация разных цветов для сегментов
+            const colors = [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(201, 203, 207, 0.8)',
+                'rgba(255, 105, 180, 0.8)',
+                'rgba(106, 90, 205, 0.8)',
+                'rgba(255, 140, 0, 0.8)'
+            ];
+            chartConfig.data.datasets[0].backgroundColor = colors.slice(0, values.length);
+            chartConfig.data.datasets[0].borderColor = '#fff';
+            chartConfig.data.datasets[0].borderWidth = 2;
+        }
+
+        // Настройки для радара
+        if (chartType === 'radar') {
+            chartConfig.data.datasets[0].fill = true;
+            chartConfig.data.datasets[0].backgroundColor = color.replace(')', ', 0.2)');
+            chartConfig.options.scales = {
+                r: {
+                    beginAtZero: true
+                }
+            };
+        }
+
+        new Chart(document.getElementById('chart_{{ forloop.counter }}'), chartConfig);
+    })();
     </script>
+
+    {% elif widget.type == 'table' %}
+    <!-- Таблица -->
+    <div class="col-md-12 col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">{{ widget.title }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Название</th>
+                                {% if widget.group_by == 'outlet' %}
+                                <th>Код</th>
+                                {% endif %}
+                                <th class="text-end">Значение</th>
+                                <th class="text-end">Кол-во</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in widget.rows %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ row.name }}</td>
+                                {% if widget.group_by == 'outlet' %}
+                                <td><code>{{ row.code }}</code></td>
+                                {% endif %}
+                                <td class="text-end"><strong>{{ row.value }}</strong></td>
+                                <td class="text-end"><span class="badge bg-secondary">{{ row.count }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Нет данных</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% elif widget.type == 'error' %}
     <!-- Ошибка виджета -->

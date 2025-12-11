@@ -247,84 +247,9 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         # После создания перенаправляем на редактирование для добавления атрибутов
         return reverse_lazy('catalog:product_update', kwargs={'pk': self.object.pk})
 
-    @transaction.atomic
     def form_valid(self, form):
         self.object = form.save()
-
-        # Если есть POST данные с атрибутами, сохраняем их
-        if self.request.POST:
-            from .models import ProductAttributeValue
-            import json
-
-            # Группируем значения для multi_choice (чекбоксы)
-            multi_choice_values = {}
-
-            for key, value in self.request.POST.items():
-                if key.startswith('attr_'):
-                    attr_id = key.replace('attr_', '')
-
-                    try:
-                        attr_def = AttributeDefinition.objects.get(id=attr_id)
-
-                        # Для multi_choice собираем все значения
-                        if attr_def.data_type == AttributeDefinition.TYPE_MULTI_CHOICE:
-                            # Проверяем, это JSON строка или обычное значение чекбокса
-                            try:
-                                # Пытаемся распарсить как JSON (для расширенных полей типа камней)
-                                parsed_value = json.loads(value)
-                                if isinstance(parsed_value, list):
-                                    # Это уже JSON массив
-                                    multi_choice_values[attr_id] = parsed_value
-                                else:
-                                    # Одно значение чекбокса
-                                    if attr_id not in multi_choice_values:
-                                        multi_choice_values[attr_id] = []
-                                    multi_choice_values[attr_id].append(value)
-                            except (json.JSONDecodeError, ValueError):
-                                # Это обычный чекбокс
-                                if attr_id not in multi_choice_values:
-                                    multi_choice_values[attr_id] = []
-                                multi_choice_values[attr_id].append(value)
-                        else:
-                            # Создать или обновить значение атрибута
-                            attr_value, created = ProductAttributeValue.objects.get_or_create(
-                                product=self.object,
-                                attribute=attr_def
-                            )
-
-                            # Установить значение в зависимости от типа
-                            if attr_def.data_type == AttributeDefinition.TYPE_TEXT:
-                                attr_value.value_text = value
-                            elif attr_def.data_type == AttributeDefinition.TYPE_INTEGER:
-                                attr_value.value_integer = int(value) if value else None
-                            elif attr_def.data_type == AttributeDefinition.TYPE_DECIMAL:
-                                attr_value.value_decimal = float(value) if value else None
-                            elif attr_def.data_type == AttributeDefinition.TYPE_BOOLEAN:
-                                attr_value.value_boolean = value == 'on'
-                            elif attr_def.data_type == AttributeDefinition.TYPE_DATE:
-                                attr_value.value_date = value if value else None
-                            elif attr_def.data_type == AttributeDefinition.TYPE_CHOICE:
-                                attr_value.value_choice = value
-
-                            attr_value.save()
-                    except (AttributeDefinition.DoesNotExist, ValueError):
-                        continue
-
-            # Сохранить multi_choice значения
-            for attr_id, values in multi_choice_values.items():
-                try:
-                    attr_def = AttributeDefinition.objects.get(id=attr_id)
-                    attr_value, created = ProductAttributeValue.objects.get_or_create(
-                        product=self.object,
-                        attribute=attr_def
-                    )
-
-                    attr_value.value_multi_choice = values
-                    attr_value.save()
-                except AttributeDefinition.DoesNotExist:
-                    continue
-
-        messages.success(self.request, f'Product "{form.instance.name}" created successfully with attributes.')
+        messages.success(self.request, f'Product "{form.instance.name}" created successfully. Now you can add attributes.')
         return super().form_valid(form)
 
 

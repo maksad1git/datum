@@ -112,13 +112,99 @@ class Region(models.Model):
         return f"{self.country.name} - {self.name}"
 
 
-class Channel(models.Model):
-    """Канал сбыта"""
+class City(models.Model):
+    """Город - второй уровень географической иерархии"""
     region = models.ForeignKey(
         Region,
         on_delete=models.CASCADE,
         verbose_name='Регион',
-        related_name='channels'
+        related_name='cities'
+    )
+    name = models.CharField('Название', max_length=255)
+    code = models.CharField('Код', max_length=50)
+
+    # Геоданные (на потом, пока заглушка)
+    geo_polygon = models.JSONField('Полигон (GeoJSON)', null=True, blank=True)
+
+    # Типы данных
+    DATA_EXPERT = 'expert'
+    DATA_MONITORING = 'monitoring'
+    DATA_MIXED = 'mixed'
+    DATA_CHOICES = [
+        (DATA_EXPERT, 'Экспертный'),
+        (DATA_MONITORING, 'Мониторинговый'),
+        (DATA_MIXED, 'Смешанный'),
+    ]
+    data_type = models.CharField('Тип данных', max_length=20, choices=DATA_CHOICES, default=DATA_MIXED)
+
+    # Дополнительные параметры
+    settings = models.JSONField('Дополнительные настройки', default=dict, blank=True)
+
+    # Метаданные
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    updated_at = models.DateTimeField('Дата обновления', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Город'
+        verbose_name_plural = 'Города'
+        ordering = ['region', 'name']
+        unique_together = ['region', 'code']
+
+    def __str__(self):
+        return f"{self.region.name} - {self.name}"
+
+
+class District(models.Model):
+    """Район - третий уровень географической иерархии"""
+    city = models.ForeignKey(
+        City,
+        on_delete=models.CASCADE,
+        verbose_name='Город',
+        related_name='districts'
+    )
+    name = models.CharField('Название', max_length=255)
+    code = models.CharField('Код', max_length=50)
+
+    # Геоданные (на потом, пока заглушка)
+    geo_polygon = models.JSONField('Полигон (GeoJSON)', null=True, blank=True)
+
+    # Типы данных
+    DATA_EXPERT = 'expert'
+    DATA_MONITORING = 'monitoring'
+    DATA_MIXED = 'mixed'
+    DATA_CHOICES = [
+        (DATA_EXPERT, 'Экспертный'),
+        (DATA_MONITORING, 'Мониторинговый'),
+        (DATA_MIXED, 'Смешанный'),
+    ]
+    data_type = models.CharField('Тип данных', max_length=20, choices=DATA_CHOICES, default=DATA_MIXED)
+
+    # Дополнительные параметры
+    settings = models.JSONField('Дополнительные настройки', default=dict, blank=True)
+
+    # Метаданные
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    updated_at = models.DateTimeField('Дата обновления', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Район'
+        verbose_name_plural = 'Районы'
+        ordering = ['city', 'name']
+        unique_together = ['city', 'code']
+
+    def __str__(self):
+        return f"{self.city.name} - {self.name}"
+
+
+class Channel(models.Model):
+    """Канал сбыта"""
+    district = models.ForeignKey(
+        District,
+        on_delete=models.CASCADE,
+        verbose_name='Район',
+        related_name='channels',
+        null=True,
+        blank=True
     )
     name = models.CharField('Название', max_length=255)
     code = models.CharField('Код', max_length=50)
@@ -150,11 +236,11 @@ class Channel(models.Model):
     class Meta:
         verbose_name = 'Канал сбыта'
         verbose_name_plural = 'Каналы сбыта'
-        ordering = ['region', 'name']
-        unique_together = ['region', 'code']
+        ordering = ['district', 'name']
+        unique_together = ['district', 'code']
 
     def __str__(self):
-        return f"{self.region.name} - {self.name}"
+        return f"{self.district.name} - {self.name}"
 
 
 class Outlet(models.Model):

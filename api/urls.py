@@ -8,11 +8,13 @@ app_name = 'api'
 
 urlpatterns = [
     # ============================================================================
-    # GEO CASCADE: GlobalMarket → Country → Region → Channel → Outlet
+    # GEO CASCADE: GlobalMarket → Country → Region → City → District → Channel → Outlet
     # ============================================================================
     path('ajax/countries/', ajax_views.ajax_countries_by_globalmarket, name='ajax_countries_by_globalmarket'),
     path('ajax/regions/', ajax_views.ajax_regions_by_country, name='ajax_regions_by_country'),
-    path('ajax/channels/', ajax_views.ajax_channels_by_region, name='ajax_channels_by_region'),
+    path('ajax/cities/', ajax_views.ajax_cities_by_region, name='ajax_cities_by_region'),
+    path('ajax/districts/', ajax_views.ajax_districts_by_city, name='ajax_districts_by_city'),
+    path('ajax/channels/', ajax_views.ajax_channels_by_district, name='ajax_channels_by_district'),
     path('ajax/outlets/', ajax_views.ajax_outlets_by_channel, name='ajax_outlets_by_channel'),
 
     # ============================================================================

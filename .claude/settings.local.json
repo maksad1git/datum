@@ -28,7 +28,22 @@
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(del CHANGELOG.md CHANGELOG_DATA_TYPES.md DATA_SOURCE_TYPES.md DEVELOPMENT_ROADMAP.md FONON_PRODUCTION_READY.md IMPLEMENTED_FEATURES.md MYSTERY_SHOPPER_FLOW.md PROJECT_STATUS.md QUICK_START.md README.md project_log.md)"
+      "Bash(del CHANGELOG.md CHANGELOG_DATA_TYPES.md DATA_SOURCE_TYPES.md DEVELOPMENT_ROADMAP.md FONON_PRODUCTION_READY.md IMPLEMENTED_FEATURES.md MYSTERY_SHOPPER_FLOW.md PROJECT_STATUS.md QUICK_START.md README.md project_log.md)",
+      "Bash(timeout 10 bash:*)",
+      "Bash(timeout 20 bash:*)",
+      "Bash(timeout 30 bash:*)",
+      "Bash(timeout 60 bash:*)",
+      "Bash(timeout 120 bash:*)",
+      "Bash(del db.sqlite3)",
+      "Bash(del delete_data.py)",
+      "Bash(find:*)",
+      "Bash(findstr:*)",
+      "Bash(copy region_detail.html city_detail.html)",
+      "Bash(copy region_form.html city_form.html)",
+      "Bash(copy region_confirm_delete.html city_confirm_delete.html)",
+      "Bash(copy:*)",
+      "Bash(copy region_form.html district_form.html)",
+      "Bash(copy region_confirm_delete.html district_confirm_delete.html)"
     ],
     "deny": [],
     "ask": []

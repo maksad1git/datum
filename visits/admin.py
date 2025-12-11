@@ -142,7 +142,7 @@ class VisitMediaAdmin(admin.ModelAdmin):
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):
     list_display = ['product', 'outlet', 'quantity', 'price', 'total_amount', 'sale_date', 'recorded_by']
-    list_filter = ['sale_date', 'outlet__channel__region', 'recorded_at']
+    list_filter = ['sale_date', 'outlet__channel__district__city__region', 'recorded_at']
     search_fields = ['product__name', 'outlet__name']
     readonly_fields = ['total_amount', 'recorded_at']
     ordering = ['-sale_date']

@@ -25,6 +25,41 @@
     </div>
     {% endif %}
 
+    <!-- Geographic Data Section -->
+    <div class="mb-5">
+        <h3 class="mb-3"><i class="bi bi-geo-alt-fill"></i> Географические данные</h3>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="me-3" style="font-size: 2rem;">
+                                <i class="bi bi-flag-fill"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1">Узбекистан</h5>
+                                <p class="text-muted small mb-0">Версия: 1.0</p>
+                            </div>
+                        </div>
+                        <p class="card-text text-muted">
+                            Полная географическая иерархия Узбекистана: 14 регионов, 78 городов, 58 районов
+                        </p>
+                        <div class="mt-auto">
+                            <form method="post" action="{% url 'geo:load_uzbekistan' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100" onclick="return confirm('Загрузить географические данные Узбекистана?')">
+                                    <i class="bi bi-download"></i> Загрузить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3"><i class="bi bi-box-seam"></i> Категории товаров</h3>
+
     {% if presets %}
     <div class="row g-4">
         {% for preset in presets %}

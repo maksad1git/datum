@@ -25,6 +25,20 @@ urlpatterns = [
     path('regions/<int:pk>/update/', views.RegionUpdateView.as_view(), name='region_update'),
     path('regions/<int:pk>/delete/', views.RegionDeleteView.as_view(), name='region_delete'),
 
+    # City URLs
+    path('cities/', views.CityListView.as_view(), name='city_list'),
+    path('cities/<int:pk>/', views.CityDetailView.as_view(), name='city_detail'),
+    path('cities/create/', views.CityCreateView.as_view(), name='city_create'),
+    path('cities/<int:pk>/update/', views.CityUpdateView.as_view(), name='city_update'),
+    path('cities/<int:pk>/delete/', views.CityDeleteView.as_view(), name='city_delete'),
+
+    # District URLs
+    path('districts/', views.DistrictListView.as_view(), name='district_list'),
+    path('districts/<int:pk>/', views.DistrictDetailView.as_view(), name='district_detail'),
+    path('districts/create/', views.DistrictCreateView.as_view(), name='district_create'),
+    path('districts/<int:pk>/update/', views.DistrictUpdateView.as_view(), name='district_update'),
+    path('districts/<int:pk>/delete/', views.DistrictDeleteView.as_view(), name='district_delete'),
+
     # Channel URLs
     path('channels/', views.ChannelListView.as_view(), name='channel_list'),
     path('channels/<int:pk>/', views.ChannelDetailView.as_view(), name='channel_detail'),
@@ -39,4 +53,7 @@ urlpatterns = [
     path('outlets/quick-add/', views.OutletQuickAddView.as_view(), name='outlet_quick_add'),
     path('outlets/<int:pk>/update/', views.OutletUpdateView.as_view(), name='outlet_update'),
     path('outlets/<int:pk>/delete/', views.OutletDeleteView.as_view(), name='outlet_delete'),
+
+    # Data Loading URLs
+    path('load-uzbekistan/', views.load_uzbekistan_data, name='load_uzbekistan'),
 ]

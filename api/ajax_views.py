@@ -5,13 +5,13 @@ Compatible with Select2 library format
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count
-from geo.models import GlobalMarket, Country, Region, Channel, Outlet
+from geo.models import GlobalMarket, Country, Region, City, District, Channel, Outlet
 from catalog.models import Brand, Category, Product, AttributeDefinition, AttributeGroup
 from coefficients.models import Coefficient
 
 
 # ============================================================================
-# GEO CASCADE: GlobalMarket → Country → Region → Channel → Outlet
+# GEO CASCADE: GlobalMarket → Country → Region → City → District → Channel → Outlet
 # ============================================================================
 
 @login_required
@@ -111,9 +111,9 @@ def ajax_regions_by_country(request):
 
 
 @login_required
-def ajax_channels_by_region(request):
+def ajax_cities_by_region(request):
     """
-    Load channels filtered by region
+    Load cities filtered by region
     GET params: region (id), q (search term)
     """
     region_id = request.GET.get('region', '').strip()
@@ -121,11 +121,107 @@ def ajax_channels_by_region(request):
     page = int(request.GET.get('page', 1))
     page_size = 20
 
-    channels = Channel.objects.select_related('region').only('id', 'name', 'code', 'region__name')
+    cities = City.objects.select_related('region').only('id', 'name', 'code', 'region__name')
 
     # Filter by region
     if region_id:
-        channels = channels.filter(region_id=region_id)
+        cities = cities.filter(region_id=region_id)
+
+    # Search filter
+    if search_term:
+        cities = cities.filter(
+            Q(name__icontains=search_term) |
+            Q(code__icontains=search_term)
+        )
+
+    # Pagination
+    total_count = cities.count()
+    start = (page - 1) * page_size
+    end = start + page_size
+    cities = cities[start:end]
+
+    # Format for Select2
+    results = [
+        {
+            'id': city.id,
+            'text': f"{city.name} ({city.code})",
+            'name': city.name,
+            'code': city.code,
+            'region': city.region.name if city.region else '-'
+        }
+        for city in cities
+    ]
+
+    return JsonResponse({
+        'results': results,
+        'pagination': {'more': end < total_count}
+    })
+
+
+@login_required
+def ajax_districts_by_city(request):
+    """
+    Load districts filtered by city
+    GET params: city (id), q (search term)
+    """
+    city_id = request.GET.get('city', '').strip()
+    search_term = request.GET.get('q', '').strip()
+    page = int(request.GET.get('page', 1))
+    page_size = 20
+
+    districts = District.objects.select_related('city').only('id', 'name', 'code', 'city__name')
+
+    # Filter by city
+    if city_id:
+        districts = districts.filter(city_id=city_id)
+
+    # Search filter
+    if search_term:
+        districts = districts.filter(
+            Q(name__icontains=search_term) |
+            Q(code__icontains=search_term)
+        )
+
+    # Pagination
+    total_count = districts.count()
+    start = (page - 1) * page_size
+    end = start + page_size
+    districts = districts[start:end]
+
+    # Format for Select2
+    results = [
+        {
+            'id': district.id,
+            'text': f"{district.name} ({district.code})",
+            'name': district.name,
+            'code': district.code,
+            'city': district.city.name if district.city else '-'
+        }
+        for district in districts
+    ]
+
+    return JsonResponse({
+        'results': results,
+        'pagination': {'more': end < total_count}
+    })
+
+
+@login_required
+def ajax_channels_by_district(request):
+    """
+    Load channels filtered by district
+    GET params: district (id), q (search term)
+    """
+    district_id = request.GET.get('district', '').strip()
+    search_term = request.GET.get('q', '').strip()
+    page = int(request.GET.get('page', 1))
+    page_size = 20
+
+    channels = Channel.objects.select_related('district').only('id', 'name', 'code', 'district__name')
+
+    # Filter by district
+    if district_id:
+        channels = channels.filter(district_id=district_id)
 
     # Search filter
     if search_term:
@@ -147,7 +243,7 @@ def ajax_channels_by_region(request):
             'text': f"{channel.name} ({channel.code})",
             'name': channel.name,
             'code': channel.code,
-            'region': channel.region.name if channel.region else '-'
+            'district': channel.district.name if channel.district else '-'
         }
         for channel in channels
     ]
@@ -162,25 +258,35 @@ def ajax_channels_by_region(request):
 def ajax_outlets_by_channel(request):
     """
     Load outlets filtered by channel
-    GET params: channel (id), region (id), q (search term)
+    GET params: channel (id), district (id), city (id), region (id), q (search term)
     """
     channel_id = request.GET.get('channel', '').strip()
+    district_id = request.GET.get('district', '').strip()
+    city_id = request.GET.get('city', '').strip()
     region_id = request.GET.get('region', '').strip()
     search_term = request.GET.get('q', '').strip()
     page = int(request.GET.get('page', 1))
     page_size = 20
 
-    outlets = Outlet.objects.select_related('channel', 'channel__region').only(
-        'id', 'name', 'code', 'address', 'channel__name', 'channel__region__name'
+    outlets = Outlet.objects.select_related('channel', 'channel__district', 'channel__district__city', 'channel__district__city__region').only(
+        'id', 'name', 'code', 'address', 'channel__name', 'channel__district__name', 'channel__district__city__name', 'channel__district__city__region__name'
     )
 
     # Filter by channel
     if channel_id:
         outlets = outlets.filter(channel_id=channel_id)
 
+    # Alternative filter by district (shows all outlets in district)
+    elif district_id:
+        outlets = outlets.filter(channel__district_id=district_id)
+
+    # Alternative filter by city (shows all outlets in city)
+    elif city_id:
+        outlets = outlets.filter(channel__district__city_id=city_id)
+
     # Alternative filter by region (shows all outlets in region)
     elif region_id:
-        outlets = outlets.filter(channel__region_id=region_id)
+        outlets = outlets.filter(channel__district__city__region_id=region_id)
 
     # Search filter
     if search_term:
@@ -205,7 +311,9 @@ def ajax_outlets_by_channel(request):
             'code': outlet.code,
             'address': outlet.address,
             'channel': outlet.channel.name if outlet.channel else '-',
-            'region': outlet.channel.region.name if outlet.channel and outlet.channel.region else '-'
+            'district': outlet.channel.district.name if outlet.channel and outlet.channel.district else '-',
+            'city': outlet.channel.district.city.name if outlet.channel and outlet.channel.district and outlet.channel.district.city else '-',
+            'region': outlet.channel.district.city.region.name if outlet.channel and outlet.channel.district and outlet.channel.district.city and outlet.channel.district.city.region else '-'
         }
         for outlet in outlets
     ]
@@ -391,15 +499,15 @@ def ajax_region_summary(request):
     try:
         region = Region.objects.get(pk=region_id)
 
-        # Count channels
-        channels_count = Channel.objects.filter(region_id=region_id).count()
+        # Count channels (through district -> city -> region)
+        channels_count = Channel.objects.filter(district__city__region_id=region_id).count()
 
-        # Count outlets
-        outlets_count = Outlet.objects.filter(channel__region_id=region_id).count()
+        # Count outlets (through channel -> district -> city -> region)
+        outlets_count = Outlet.objects.filter(channel__district__city__region_id=region_id).count()
 
         # Count visits
         from visits.models import Visit
-        visits_count = Visit.objects.filter(outlet__channel__region_id=region_id).count()
+        visits_count = Visit.objects.filter(outlet__channel__district__city__region_id=region_id).count()
 
         return JsonResponse({
             'region': {
@@ -632,13 +740,20 @@ def ajax_products_with_attribute(request):
 def coefficients_api(request):
     """
     API для получения списка коэффициентов (для визуального конструктора дашбордов)
-    GET params: q (search term) - optional
+    GET params:
+        q (search term) - optional
+        data_type (MON/EXP/AI) - фильтр по типу источника данных
     """
     search_term = request.GET.get('q', '').strip()
+    data_type = request.GET.get('data_type', '').strip()
 
     coefficients = Coefficient.objects.filter(is_active=True).only(
-        'id', 'name', 'code', 'unit', 'value_type'
+        'id', 'name', 'code', 'unit', 'value_type', 'data_type'
     )
+
+    # Filter by data_type (MON/EXP/AI)
+    if data_type in ['MON', 'EXP', 'AI']:
+        coefficients = coefficients.filter(data_type=data_type)
 
     # Search filter
     if search_term:
@@ -654,7 +769,9 @@ def coefficients_api(request):
             'name': coef.name,
             'code': coef.code,
             'unit': coef.unit if coef.unit else '',
-            'value_type': coef.value_type
+            'value_type': coef.value_type,
+            'data_type': coef.data_type,
+            'data_type_display': coef.get_data_type_display()
         }
         for coef in coefficients
     ]

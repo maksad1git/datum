@@ -1,5 +1,5 @@
 from django import forms
-from .models import GlobalMarket, Country, Region, Channel, Outlet
+from .models import GlobalMarket, Country, Region, City, District, Channel, Outlet
 
 
 class GlobalMarketForm(forms.ModelForm):
@@ -114,6 +114,76 @@ class RegionForm(forms.ModelForm):
         }
 
 
+class CityForm(forms.ModelForm):
+    """Form for City model with cascading dropdowns support"""
+
+    class Meta:
+        model = City
+        fields = '__all__'
+        widgets = {
+            'region': forms.Select(attrs={
+                'class': 'form-select select2',
+                'id': 'id_region'
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите название города'
+            }),
+            'code': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите код города'
+            }),
+            'geo_polygon': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'GeoJSON полигон (необязательно)'
+            }),
+            'data_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'settings': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': '{"key": "value"}'
+            }),
+        }
+
+
+class DistrictForm(forms.ModelForm):
+    """Form for District model with cascading dropdowns support"""
+
+    class Meta:
+        model = District
+        fields = '__all__'
+        widgets = {
+            'city': forms.Select(attrs={
+                'class': 'form-select select2',
+                'id': 'id_city'
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите название района'
+            }),
+            'code': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите код района'
+            }),
+            'geo_polygon': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'GeoJSON полигон (необязательно)'
+            }),
+            'data_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'settings': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': '{"key": "value"}'
+            }),
+        }
+
+
 class ChannelForm(forms.ModelForm):
     """Form for Channel model with cascading dropdowns support"""
 
@@ -121,9 +191,9 @@ class ChannelForm(forms.ModelForm):
         model = Channel
         fields = '__all__'
         widgets = {
-            'region': forms.Select(attrs={
+            'district': forms.Select(attrs={
                 'class': 'form-select select2',
-                'id': 'id_region'
+                'id': 'id_district'
             }),
             'name': forms.TextInput(attrs={
                 'class': 'form-control',

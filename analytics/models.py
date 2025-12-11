@@ -29,6 +29,25 @@ class Dashboard(models.Model):
     ]
     dashboard_type = models.CharField('Тип', max_length=50, choices=TYPE_CHOICES, default=TYPE_OVERVIEW)
 
+    # Уровень иерархии (для мультиуровневых дашбордов)
+    LEVEL_COUNTRY = 'country'
+    LEVEL_REGION = 'region'
+    LEVEL_CITY = 'city'
+    LEVEL_DISTRICT = 'district'
+    LEVEL_CHANNEL = 'channel'
+    LEVEL_OUTLET = 'outlet'
+    LEVEL_CHOICES = [
+        (LEVEL_COUNTRY, 'Страна'),
+        (LEVEL_REGION, 'Регион'),
+        (LEVEL_CITY, 'Город'),
+        (LEVEL_DISTRICT, 'Район'),
+        (LEVEL_CHANNEL, 'Канал сбыта'),
+        (LEVEL_OUTLET, 'Торговая точка'),
+    ]
+    level = models.CharField('Уровень иерархии', max_length=50, choices=LEVEL_CHOICES, blank=True, null=True)
+    level_icon = models.CharField('Иконка уровня', max_length=10, blank=True, help_text='Эмодзи для отображения в переключателе')
+    level_order = models.PositiveIntegerField('Порядок уровня', default=0, help_text='Порядок отображения в переключателе')
+
     # Конфигурация виджетов в JSON
     # Пример: [
     #   {

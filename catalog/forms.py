@@ -281,14 +281,19 @@ class ProductAttributeValueForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Если есть instance, показываем только релевантное поле значения
-        if self.instance and self.instance.attribute:
-            attr_type = self.instance.attribute.data_type
-            # Скрываем все поля значений
-            for field in ['value_text', 'value_integer', 'value_decimal',
-                         'value_boolean', 'value_date', 'value_choice',
-                         'value_multi_choice', 'value_file']:
-                if f'value_{attr_type}' != field:
-                    self.fields[field].widget = forms.HiddenInput()
+        if self.instance and self.instance.pk:
+            try:
+                if self.instance.attribute:
+                    attr_type = self.instance.attribute.data_type
+                    # Скрываем все поля значений
+                    for field in ['value_text', 'value_integer', 'value_decimal',
+                                 'value_boolean', 'value_date', 'value_choice',
+                                 'value_multi_choice', 'value_file']:
+                        if f'value_{attr_type}' != field:
+                            self.fields[field].widget = forms.HiddenInput()
+            except AttributeDefinition.DoesNotExist:
+                # Если атрибут не существует, ничего не скрываем
+                pass
 
 
 class CategoryAttributeTemplateForm(forms.ModelForm):

@@ -1,10 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.core.management import call_command
 
-from .models import GlobalMarket, Country, Region, Channel, Outlet
-from .forms import GlobalMarketForm, CountryForm, RegionForm, ChannelForm, OutletForm
+from .models import GlobalMarket, Country, Region, City, District, Channel, Outlet
+from .forms import GlobalMarketForm, CountryForm, RegionForm, CityForm, DistrictForm, ChannelForm, OutletForm
 from core.validation import OutletValidator
 
 
@@ -135,7 +138,7 @@ class RegionDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'region'
 
     def get_queryset(self):
-        return Region.objects.select_related('country', 'country__global_market').prefetch_related('channels')
+        return Region.objects.select_related('country', 'country__global_market').prefetch_related('cities')
 
 
 class RegionCreateView(LoginRequiredMixin, CreateView):
@@ -171,6 +174,116 @@ class RegionDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # ============================================================================
+# City Views
+# ============================================================================
+
+class CityListView(LoginRequiredMixin, ListView):
+    model = City
+    template_name = 'geo/city_list.html'
+    context_object_name = 'cities'
+    paginate_by = 25
+
+    def get_queryset(self):
+        return City.objects.select_related('region', 'region__country', 'region__country__global_market')
+
+
+class CityDetailView(LoginRequiredMixin, DetailView):
+    model = City
+    template_name = 'geo/city_detail.html'
+    context_object_name = 'city'
+
+    def get_queryset(self):
+        return City.objects.select_related('region', 'region__country', 'region__country__global_market').prefetch_related('districts')
+
+
+class CityCreateView(LoginRequiredMixin, CreateView):
+    model = City
+    template_name = 'geo/city_form.html'
+    form_class = CityForm
+    success_url = reverse_lazy('geo:city_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f'City "{form.instance.name}" created successfully.')
+        return super().form_valid(form)
+
+
+class CityUpdateView(LoginRequiredMixin, UpdateView):
+    model = City
+    template_name = 'geo/city_form.html'
+    form_class = CityForm
+    success_url = reverse_lazy('geo:city_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f'City "{form.instance.name}" updated successfully.')
+        return super().form_valid(form)
+
+
+class CityDeleteView(LoginRequiredMixin, DeleteView):
+    model = City
+    template_name = 'geo/city_confirm_delete.html'
+    success_url = reverse_lazy('geo:city_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, f'City "{self.get_object().name}" deleted successfully.')
+        return super().delete(request, *args, **kwargs)
+
+
+# ============================================================================
+# District Views
+# ============================================================================
+
+class DistrictListView(LoginRequiredMixin, ListView):
+    model = District
+    template_name = 'geo/district_list.html'
+    context_object_name = 'districts'
+    paginate_by = 25
+
+    def get_queryset(self):
+        return District.objects.select_related('city', 'city__region', 'city__region__country')
+
+
+class DistrictDetailView(LoginRequiredMixin, DetailView):
+    model = District
+    template_name = 'geo/district_detail.html'
+    context_object_name = 'district'
+
+    def get_queryset(self):
+        return District.objects.select_related('city', 'city__region', 'city__region__country').prefetch_related('channels')
+
+
+class DistrictCreateView(LoginRequiredMixin, CreateView):
+    model = District
+    template_name = 'geo/district_form.html'
+    form_class = DistrictForm
+    success_url = reverse_lazy('geo:district_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f'District "{form.instance.name}" created successfully.')
+        return super().form_valid(form)
+
+
+class DistrictUpdateView(LoginRequiredMixin, UpdateView):
+    model = District
+    template_name = 'geo/district_form.html'
+    form_class = DistrictForm
+    success_url = reverse_lazy('geo:district_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f'District "{form.instance.name}" updated successfully.')
+        return super().form_valid(form)
+
+
+class DistrictDeleteView(LoginRequiredMixin, DeleteView):
+    model = District
+    template_name = 'geo/district_confirm_delete.html'
+    success_url = reverse_lazy('geo:district_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, f'District "{self.get_object().name}" deleted successfully.')
+        return super().delete(request, *args, **kwargs)
+
+
+# ============================================================================
 # Channel Views
 # ============================================================================
 
@@ -181,7 +294,7 @@ class ChannelListView(LoginRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        return Channel.objects.select_related('region', 'region__country')
+        return Channel.objects.select_related('district', 'district__city', 'district__city__region', 'district__city__region__country')
 
 
 class ChannelDetailView(LoginRequiredMixin, DetailView):
@@ -190,7 +303,7 @@ class ChannelDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'channel'
 
     def get_queryset(self):
-        return Channel.objects.select_related('region', 'region__country').prefetch_related('outlets')
+        return Channel.objects.select_related('district', 'district__city', 'district__city__region', 'district__city__region__country').prefetch_related('outlets')
 
 
 class ChannelCreateView(LoginRequiredMixin, CreateView):
@@ -236,7 +349,7 @@ class OutletListView(LoginRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        return Outlet.objects.select_related('channel', 'channel__region', 'channel__region__country')
+        return Outlet.objects.select_related('channel', 'channel__district', 'channel__district__city', 'channel__district__city__region', 'channel__district__city__region__country')
 
 
 class OutletDetailView(LoginRequiredMixin, DetailView):
@@ -245,7 +358,7 @@ class OutletDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'outlet'
 
     def get_queryset(self):
-        return Outlet.objects.select_related('channel', 'channel__region', 'channel__region__country')
+        return Outlet.objects.select_related('channel', 'channel__district', 'channel__district__city', 'channel__district__city__region', 'channel__district__city__region__country')
 
 
 class OutletCreateView(LoginRequiredMixin, CreateView):
@@ -326,8 +439,8 @@ class OutletQuickAddView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Get all channels for dropdown (sorted by region)
-        context['channels'] = Channel.objects.select_related('region', 'region__country').all()
+        # Get all channels for dropdown (sorted by district, city, region)
+        context['channels'] = Channel.objects.select_related('district', 'district__city', 'district__city__region', 'district__city__region__country').all()
         return context
 
     def form_valid(self, form):
@@ -347,3 +460,28 @@ class OutletQuickAddView(LoginRequiredMixin, CreateView):
             f'Магазин "{form.instance.name}" добавлен! Визит можно начинать после модерации.'
         )
         return super().form_valid(form)
+
+
+# ============================================================================
+# Geographic Data Loading
+# ============================================================================
+
+@login_required
+def load_uzbekistan_data(request):
+    """Load Uzbekistan geographic data"""
+    if request.method == 'POST':
+        try:
+            # Check if already loaded
+            if Country.objects.filter(code='UZ').exists():
+                messages.warning(request, 'Данные Узбекистана уже загружены в систему.')
+            else:
+                # Call the management command
+                call_command('load_uzbekistan')
+                messages.success(
+                    request,
+                    'Данные Узбекистана успешно загружены! Добавлено 14 регионов, 78 городов и 58 районов.'
+                )
+        except Exception as e:
+            messages.error(request, f'Ошибка при загрузке данных: {str(e)}')
+
+    return redirect('catalog:preinstall_list')

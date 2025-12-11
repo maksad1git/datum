@@ -341,7 +341,19 @@ class ProductAttributeValue(models.Model):
         elif attr_type == AttributeDefinition.TYPE_CHOICE:
             return self.value_choice
         elif attr_type == AttributeDefinition.TYPE_MULTI_CHOICE:
-            return ', '.join(self.value_multi_choice) if self.value_multi_choice else None
+            if not self.value_multi_choice:
+                return None
+            # Проверяем тип данных в JSON
+            if isinstance(self.value_multi_choice, list):
+                # Если это список строк, объединяем их
+                if all(isinstance(item, str) for item in self.value_multi_choice):
+                    return ', '.join(self.value_multi_choice)
+                # Если это список словарей (например, для камней), форматируем
+                elif all(isinstance(item, dict) for item in self.value_multi_choice):
+                    # Для каждого словаря берем первое значимое поле
+                    return ', '.join([str(list(item.values())[0]) if item else '' for item in self.value_multi_choice])
+            # Если это словарь или другой тип, возвращаем строковое представление
+            return str(self.value_multi_choice)
         elif attr_type == AttributeDefinition.TYPE_FILE:
             return self.value_file.name if self.value_file else None
         return None

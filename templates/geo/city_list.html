@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Города - Datum{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Города</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>🏙️ Города</h1>
+    <a href="{% url 'geo:city_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Создать новый
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Код</th>
+                        <th>Регион</th>
+                        <th>Тип данных</th>
+                        <th>Дата создания</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for city in object_list %}
+                    <tr>
+                        <td><a href="{% url 'geo:city_detail' city.pk %}">{{ city.name }}</a></td>
+                        <td><code>{{ city.code }}</code></td>
+                        <td><a href="{% url 'geo:region_detail' city.region.pk %}">{{ city.region.name }}</a></td>
+                        <td>{{ city.get_data_type_display }}</td>
+                        <td>{{ city.created_at|date:"d.m.Y" }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'geo:city_detail' city.pk %}" class="btn btn-outline-primary" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'geo:city_update' city.pk %}" class="btn btn-outline-secondary" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'geo:city_delete' city.pk %}" class="btn btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Нет данных</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1">Первая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

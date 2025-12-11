@@ -6,6 +6,7 @@ app_name = 'analytics'
 urlpatterns = [
     # Dashboard URLs
     path('dashboards/', views.DashboardListView.as_view(), name='dashboard_list'),
+    path('dashboard/', views.MultiLevelDashboardView.as_view(), name='multilevel_dashboard'),
     path('dashboards/<int:pk>/', views.DashboardDetailView.as_view(), name='dashboard_detail'),
     path('dashboards/create/', views.DashboardCreateView.as_view(), name='dashboard_create'),
     path('dashboards/<int:pk>/update/', views.DashboardUpdateView.as_view(), name='dashboard_update'),

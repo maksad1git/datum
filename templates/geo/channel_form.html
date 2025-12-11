@@ -45,19 +45,6 @@
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">
-                        {{ form.region.label }}
-                        {% if form.region.field.required %}<span class="text-danger">*</span>{% endif %}
-                    </label>
-                    {{ form.region }}
-                    {% if form.region.errors %}
-                    <div class="invalid-feedback d-block">{{ form.region.errors.0 }}</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">
                         {{ form.code.label }}
                         {% if form.code.field.required %}<span class="text-danger">*</span>{% endif %}
                     </label>
@@ -66,7 +53,46 @@
                     <div class="invalid-feedback d-block">{{ form.code.errors.0 }}</div>
                     {% endif %}
                 </div>
+            </div>
 
+            <!-- Каскадные селекторы географической иерархии -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">🌍 Страна</label>
+                    <select id="id_country" class="form-select select2">
+                        <option value="">Выберите страну...</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">🌐 Регион</label>
+                    <select id="id_region" class="form-select select2">
+                        <option value="">Сначала выберите страну</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">🏙️ Город</label>
+                    <select id="id_city" class="form-select select2">
+                        <option value="">Сначала выберите регион</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        🏘️ Район
+                        {% if form.district.field.required %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+                    {{ form.district }}
+                    {% if form.district.errors %}
+                    <div class="invalid-feedback d-block">{{ form.district.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">
                         {{ form.type.label }}
@@ -106,4 +132,39 @@
         font-weight: 500;
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/cascading_dropdowns.js"></script>
+<script>
+$(document).ready(function() {
+    // Инициализировать Select2 для страны и загрузить все страны
+    $('#id_country').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Выберите страну...',
+        allowClear: true,
+        ajax: {
+            url: '/api/ajax/countries/',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term,
+                    page: params.page || 1
+                };
+            },
+            processResults: function(data) {
+                return {
+                    results: data.results,
+                    pagination: {
+                        more: data.pagination.more
+                    }
+                };
+            },
+            cache: true
+        }
+    });
+});
+</script>
 {% endblock %}

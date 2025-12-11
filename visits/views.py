@@ -93,7 +93,7 @@ class VisitDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return Visit.objects.select_related(
             'visit_type', 'outlet', 'user',
-            'outlet__channel', 'outlet__channel__region'
+            'outlet__channel', 'outlet__channel__district', 'outlet__channel__district__city', 'outlet__channel__district__city__region'
         ).prefetch_related('observations', 'media')
 
 
@@ -576,7 +576,7 @@ def start_visit_now(request):
     # Получить все активные каналы (только те, где есть активные магазины)
     channels = Channel.objects.filter(
         outlets__status=Outlet.STATUS_ACTIVE
-    ).select_related('region', 'region__country').distinct().order_by('region__country__name', 'region__name', 'name')
+    ).select_related('district', 'district__city', 'district__city__region', 'district__city__region__country').distinct().order_by('district__city__region__country__name', 'district__city__region__name', 'district__city__name', 'district__name', 'name')
 
     # Получить магазины выбранного канала
     outlets = []
@@ -584,7 +584,7 @@ def start_visit_now(request):
         outlets = Outlet.objects.filter(
             channel_id=selected_channel_id,
             status=Outlet.STATUS_ACTIVE
-        ).select_related('channel', 'channel__region', 'channel__region__country').order_by('name')
+        ).select_related('channel', 'channel__district', 'channel__district__city', 'channel__district__city__region', 'channel__district__city__region__country').order_by('name')
 
     # Получить типы визитов (FONON и другие)
     visit_types = VisitType.objects.filter(is_active=True)

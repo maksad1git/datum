@@ -159,31 +159,498 @@
 
 <!-- Модальное окно добавления виджета -->
 <div class="modal fade" id="widgetModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Добавить виджет</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i> Выберите тип виджета
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Тип виджета <span class="text-danger">*</span></label>
-                    <select class="form-select" id="widgetType" onchange="updateWidgetForm()">
-                        <option value="">Выберите тип...</option>
-                        <option value="metric">📊 Метрика (одно число)</option>
-                        <option value="chart">📈 График</option>
-                    </select>
+            <div class="modal-body" id="widgetModalBody">
+                <!-- Этап 1: Выбор типа виджета (карточки) -->
+                <div id="widgetTypeSelection">
+                    <div class="row g-3">
+                        <!-- Метрика -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('metric')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-primary mb-3">📊</div>
+                                    <h5 class="card-title">Метрика</h5>
+                                    <p class="card-text text-muted small">Одно большое число с иконкой. Показывает итоговое значение.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример:</small>
+                                        <div class="fw-bold text-primary fs-3">80 шт</div>
+                                        <small class="text-muted">Количество колец</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Линейный график -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('line')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-success mb-3">📈</div>
+                                    <h5 class="card-title">Линейный график</h5>
+                                    <p class="card-text text-muted small">Показывает тренды и изменения во времени.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: динамика продаж</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Столбчатый график -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('bar')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-info mb-3">📊</div>
+                                    <h5 class="card-title">Столбчатый график</h5>
+                                    <p class="card-text text-muted small">Сравнение значений по категориям.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: сравнение по регионам</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Круговая диаграмма -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('pie')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-warning mb-3">🥧</div>
+                                    <h5 class="card-title">Круговая диаграмма</h5>
+                                    <p class="card-text text-muted small">Показывает доли от целого в процентах.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: доли по типам золота</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Пончик -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('doughnut')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-danger mb-3">🍩</div>
+                                    <h5 class="card-title">Диаграмма-пончик</h5>
+                                    <p class="card-text text-muted small">Как круговая, но с отверстием в центре.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: распределение по категориям</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Радар -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('radar')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-primary mb-3">🕸️</div>
+                                    <h5 class="card-title">Радар</h5>
+                                    <p class="card-text text-muted small">Сравнение по нескольким параметрам.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: показатели магазина</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Полярная диаграмма -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('polarArea')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-success mb-3">⭕</div>
+                                    <h5 class="card-title">Полярная диаграмма</h5>
+                                    <p class="card-text text-muted small">Круговая с размером сегментов.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: объемы по каналам</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Горизонтальный бар -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('horizontalBar')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-info mb-3">📶</div>
+                                    <h5 class="card-title">Горизонтальные столбцы</h5>
+                                    <p class="card-text text-muted small">Столбцы расположены горизонтально.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: рейтинг точек</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Таблица -->
+                        <div class="col-md-4">
+                            <div class="card widget-type-card h-100" onclick="selectWidgetType('table')" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <div class="display-1 text-secondary mb-3">📋</div>
+                                    <h5 class="card-title">Таблица</h5>
+                                    <p class="card-text text-muted small">Детальные данные в табличном виде.</p>
+                                    <div class="border rounded p-2 bg-light mt-3">
+                                        <small class="text-muted">Пример: топ-10 точек</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="widgetFormContainer"></div>
+                <!-- Этап 2: Настройка выбранного виджета -->
+                <div id="widgetConfigForm" style="display: none;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="backToTypeSelection()">
+                        <i class="bi bi-arrow-left"></i> Назад к выбору типа
+                    </button>
+                    <div id="widgetFormContainer"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" onclick="saveWidget()">Добавить</button>
+                <button type="button" class="btn btn-primary" id="saveWidgetBtn" onclick="saveWidget()" style="display: none;">
+                    <i class="bi bi-check-circle"></i> Добавить виджет
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.widget-type-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+.widget-type-card:hover {
+    border-color: var(--bs-primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-5px);
+}
+</style>
+
+<script>
+// Скрипт внутри content (блок extra_js не загружается)
+console.log('=== INLINE SCRIPT LOADED ===');
+
+// Глобальные переменные
+let widgets = [];
+let editingIndex = null;
+let allCoefficients = [];
+let selectedWidgetType = null;
+
+// Загрузить коэффициенты при загрузке страницы
+fetch('/api/coefficients/')
+    .then(response => response.json())
+    .then(data => {
+        allCoefficients = data;
+        console.log('✅ Загружено коэффициентов:', allCoefficients.length);
+    })
+    .catch(error => {
+        console.error('❌ Ошибка загрузки коэффициентов:', error);
+    });
+
+// Открыть модальное окно добавления виджета
+window.addWidget = function() {
+    console.log('addWidget() called');
+    editingIndex = null;
+    selectedWidgetType = null;
+
+    // Показать экран выбора типа
+    document.getElementById('widgetTypeSelection').style.display = 'block';
+    document.getElementById('widgetConfigForm').style.display = 'none';
+    document.getElementById('saveWidgetBtn').style.display = 'none';
+
+    const modalElement = document.getElementById('widgetModal');
+    if (!modalElement) {
+        console.error('Modal element not found');
+        return;
+    }
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+};
+
+// Выбрать тип виджета
+window.selectWidgetType = function(type) {
+    console.log('Selected widget type:', type);
+    selectedWidgetType = type;
+
+    // Скрыть выбор типа, показать форму настройки
+    document.getElementById('widgetTypeSelection').style.display = 'none';
+    document.getElementById('widgetConfigForm').style.display = 'block';
+    document.getElementById('saveWidgetBtn').style.display = 'block';
+
+    // Генерировать форму в зависимости от типа
+    updateWidgetForm(type);
+};
+
+// Вернуться к выбору типа
+window.backToTypeSelection = function() {
+    document.getElementById('widgetTypeSelection').style.display = 'block';
+    document.getElementById('widgetConfigForm').style.display = 'none';
+    document.getElementById('saveWidgetBtn').style.display = 'none';
+    selectedWidgetType = null;
+};
+
+// Генерировать форму настройки виджета
+window.updateWidgetForm = function(type) {
+    const container = document.getElementById('widgetFormContainer');
+
+    if (!type) {
+        container.innerHTML = '';
+        return;
+    }
+
+    // Генерация опций для выбора коэффициента
+    const coefficientOptions = allCoefficients.map(c =>
+        `<option value="${c.id}">${c.name} ${c.unit ? '(' + c.unit + ')' : ''} - [${c.data_type_display}]</option>`
+    ).join('');
+
+    const commonFields = `
+        <div class="mb-3">
+            <label class="form-label">Название <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="widgetTitle" placeholder="Название виджета">
+            <small class="text-muted">Короткое название для отображения</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Коэффициент/Метрика <span class="text-danger">*</span></label>
+            <select class="form-select" id="widgetCoefficient">
+                <option value="">Выберите коэффициент...</option>
+                ${coefficientOptions}
+            </select>
+            <small class="text-muted">Выберите показатель для отображения</small>
+        </div>
+    `;
+
+    if (type === 'metric') {
+        container.innerHTML = `
+            ${commonFields}
+            <div class="mb-3">
+                <label class="form-label">Функция агрегации</label>
+                <select class="form-select" id="widgetAggregation">
+                    <option value="avg">Среднее (AVG)</option>
+                    <option value="sum">Сумма (SUM)</option>
+                    <option value="count">Количество (COUNT)</option>
+                    <option value="min">Минимум (MIN)</option>
+                    <option value="max">Максимум (MAX)</option>
+                </select>
+                <small class="text-muted">Как вычислять значение</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Единица измерения</label>
+                <input type="text" class="form-control" id="widgetUnit" placeholder="шт">
+                <small class="text-muted">₽, %, шт, кг, г</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Цвет карточки</label>
+                <select class="form-select" id="widgetColor">
+                    <option value="primary">Синий</option>
+                    <option value="success">Зеленый</option>
+                    <option value="danger">Красный</option>
+                    <option value="warning">Желтый</option>
+                    <option value="info">Голубой</option>
+                </select>
+            </div>
+            <div class="alert alert-info small">
+                💡 <strong>Тип данных</strong> (Мониторинговые/Экспертные/ИИ) выбирается на дашборде при просмотре
+            </div>
+        `;
+    } else if (['line', 'bar', 'horizontalBar'].includes(type)) {
+        // Линейные и столбчатые графики
+        container.innerHTML = `
+            ${commonFields}
+            <div class="mb-3">
+                <label class="form-label">Группировка данных</label>
+                <select class="form-select" id="widgetGroupBy">
+                    <option value="date">По дням</option>
+                    <option value="week">По неделям</option>
+                    <option value="month">По месяцам</option>
+                    <option value="region">По регионам</option>
+                    <option value="channel">По каналам</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Цвет</label>
+                <input type="color" class="form-control form-control-color" id="widgetColor" value="#0d6efd">
+            </div>
+            <div class="alert alert-info small">
+                💡 Данные будут группироваться и отображаться в виде временного ряда или по категориям
+            </div>
+        `;
+    } else if (['pie', 'doughnut', 'polarArea'].includes(type)) {
+        // Круговые диаграммы
+        container.innerHTML = `
+            ${commonFields}
+            <div class="mb-3">
+                <label class="form-label">Группировка данных</label>
+                <select class="form-select" id="widgetGroupBy">
+                    <option value="region">По регионам</option>
+                    <option value="channel">По каналам</option>
+                    <option value="outlet">По торговым точкам</option>
+                </select>
+                <small class="text-muted">Данные будут показаны как доли от целого</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Максимум сегментов</label>
+                <input type="number" class="form-control" id="widgetMaxSegments" value="5" min="3" max="10">
+                <small class="text-muted">Сколько крупнейших сегментов показать (остальные в "Прочие")</small>
+            </div>
+            <div class="alert alert-info small">
+                💡 Круговые диаграммы показывают распределение в процентах
+            </div>
+        `;
+    } else if (type === 'radar') {
+        // Радар
+        container.innerHTML = `
+            <div class="mb-3">
+                <label class="form-label">Название <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="widgetTitle" placeholder="Профиль магазина">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Выберите несколько метрик</label>
+                <select class="form-select" id="widgetCoefficients" multiple size="8">
+                    ${allCoefficients.map(c =>
+                        `<option value="${c.id}">${c.name} (${c.unit || 'без ед.'})</option>`
+                    ).join('')}
+                </select>
+                <small class="text-muted">Удерживайте Ctrl для множественного выбора</small>
+            </div>
+            <div class="alert alert-info small">
+                💡 Радар показывает профиль по нескольким показателям одновременно
+            </div>
+        `;
+    } else if (type === 'table') {
+        // Таблица
+        container.innerHTML = `
+            ${commonFields}
+            <div class="mb-3">
+                <label class="form-label">Группировка данных</label>
+                <select class="form-select" id="widgetGroupBy">
+                    <option value="outlet">По торговым точкам</option>
+                    <option value="region">По регионам</option>
+                    <option value="channel">По каналам</option>
+                    <option value="date">По дням</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Количество строк</label>
+                <input type="number" class="form-control" id="widgetRowLimit" value="10" min="5" max="50">
+                <small class="text-muted">Сколько строк показывать (топ N)</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Сортировка</label>
+                <select class="form-select" id="widgetSort">
+                    <option value="desc">По убыванию (больше → меньше)</option>
+                    <option value="asc">По возрастанию (меньше → больше)</option>
+                </select>
+            </div>
+            <div class="alert alert-info small">
+                💡 Таблица покажет детальные данные с возможностью сортировки
+            </div>
+        `;
+    }
+};
+
+// Сохранить виджет
+window.saveWidget = function() {
+    const type = selectedWidgetType;
+    const title = document.getElementById('widgetTitle')?.value;
+
+    if (!type || !title) {
+        alert('❌ Заполните обязательные поля: название');
+        return;
+    }
+
+    const widget = {
+        type: type,
+        title: title
+    };
+
+    // Для метрики
+    if (type === 'metric') {
+        const coefficientId = document.getElementById('widgetCoefficient')?.value;
+        if (!coefficientId) {
+            alert('❌ Выберите коэффициент');
+            return;
+        }
+        widget.coefficient_id = parseInt(coefficientId);
+        widget.aggregation = document.getElementById('widgetAggregation')?.value || 'avg';
+        widget.unit = document.getElementById('widgetUnit')?.value || '';
+        widget.color = document.getElementById('widgetColor')?.value || 'primary';
+    }
+
+    // Для графиков (line, bar, horizontalBar)
+    else if (['line', 'bar', 'horizontalBar'].includes(type)) {
+        const coefficientId = document.getElementById('widgetCoefficient')?.value;
+        if (!coefficientId) {
+            alert('❌ Выберите коэффициент');
+            return;
+        }
+        widget.coefficient_id = parseInt(coefficientId);
+        widget.chart_type = type;
+        widget.group_by = document.getElementById('widgetGroupBy')?.value || 'date';
+        widget.color = document.getElementById('widgetColor')?.value || '#0d6efd';
+    }
+
+    // Для круговых диаграмм (pie, doughnut, polarArea)
+    else if (['pie', 'doughnut', 'polarArea'].includes(type)) {
+        const coefficientId = document.getElementById('widgetCoefficient')?.value;
+        if (!coefficientId) {
+            alert('❌ Выберите коэффициент');
+            return;
+        }
+        widget.coefficient_id = parseInt(coefficientId);
+        widget.chart_type = type;
+        widget.group_by = document.getElementById('widgetGroupBy')?.value || 'region';
+        widget.max_segments = parseInt(document.getElementById('widgetMaxSegments')?.value) || 5;
+    }
+
+    // Для радара
+    else if (type === 'radar') {
+        const selectedOptions = document.getElementById('widgetCoefficients')?.selectedOptions;
+        if (!selectedOptions || selectedOptions.length < 3) {
+            alert('❌ Выберите минимум 3 метрики для радара');
+            return;
+        }
+        widget.chart_type = 'radar';
+        widget.coefficient_ids = Array.from(selectedOptions).map(opt => parseInt(opt.value));
+    }
+
+    // Для таблицы
+    else if (type === 'table') {
+        const coefficientId = document.getElementById('widgetCoefficient')?.value;
+        if (!coefficientId) {
+            alert('❌ Выберите коэффициент');
+            return;
+        }
+        widget.coefficient_id = parseInt(coefficientId);
+        widget.group_by = document.getElementById('widgetGroupBy')?.value || 'outlet';
+        widget.row_limit = parseInt(document.getElementById('widgetRowLimit')?.value) || 10;
+        widget.sort = document.getElementById('widgetSort')?.value || 'desc';
+    }
+
+    widgets.push(widget);
+
+    // Обновить скрытое поле
+    const config = { widgets: widgets };
+    document.getElementById('configInput').value = JSON.stringify(config);
+
+    console.log('✅ Widget saved:', widget);
+    console.log('Total widgets:', widgets.length);
+
+    // Закрыть модальное окно
+    const modalElement = document.getElementById('widgetModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    modal.hide();
+
+    alert(`✅ Виджет "${title}" добавлен! Всего виджетов: ${widgets.length}\n\n💾 Нажмите "Сохранить" внизу страницы, чтобы сохранить дашборд.`);
+};
+
+console.log('Functions defined');
+</script>
+
 {% endblock %}
 
 {% block extra_css %}
@@ -205,57 +672,37 @@
 
 {% block extra_js %}
 <script>
+console.log('=== SCRIPT BLOCK LOADED ===');
+
 let widgets = [];
 let editingIndex = null;
 let allCoefficients = [];
 
-// Загрузить коэффициенты при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Dashboard form JavaScript loaded');
+// ВАЖНО: Функции должны быть объявлены ДО DOMContentLoaded для доступа из onclick
 
-    // Загрузить коэффициенты через AJAX
-    fetch('/api/coefficients/')
-        .then(response => response.json())
-        .then(data => {
-            allCoefficients = data;
-        })
-        .catch(() => {
-            // Fallback: использовать заглушки
-            allCoefficients = [
-                {id: 1, name: 'Цена', code: 'price', unit: '₽'},
-                {id: 2, name: 'Наличие', code: 'availability', unit: '%'},
-                {id: 3, name: 'Промо', code: 'promo', unit: 'шт'}
-            ];
-        });
-
-    // Загрузить существующие виджеты если редактируем
-    {% if object and object.widgets_config %}
-    try {
-        const config = {{ object.widgets_config|safe }};
-        if (config && config.widgets) {
-            widgets = config.widgets;
-            renderWidgets();
-        }
-    } catch(e) {
-        console.error('Error loading widgets_config:', e);
-    }
-    {% endif %}
-
-    // Добавить обработчик отправки формы
-    attachSubmitHandler();
-});
-
-function addWidget() {
+window.addWidget = function addWidget() {
+    console.log('addWidget() called');
     editingIndex = null;
     document.getElementById('widgetType').value = '';
     document.getElementById('widgetFormContainer').innerHTML = '';
-    const modal = new bootstrap.Modal(document.getElementById('widgetModal'));
+    const modalElement = document.getElementById('widgetModal');
+    if (!modalElement) {
+        console.error('Modal element not found');
+        return;
+    }
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
+    console.log('Modal shown');
 }
 
+console.log('addWidget function defined:', typeof window.addWidget);
+
 function updateWidgetForm() {
+    console.log('updateWidgetForm() called');
     const type = document.getElementById('widgetType').value;
     const container = document.getElementById('widgetFormContainer');
+
+    console.log('Widget type:', type);
 
     if (!type) {
         container.innerHTML = '';
@@ -270,21 +717,15 @@ function updateWidgetForm() {
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Источник данных <span class="text-danger">*</span></label>
-                <select class="form-select" id="widgetDataSource" onchange="updateDataSourceFields()">
-                    <option value="">Выберите источник...</option>
-                    <option value="static">Статичный (Coefficient)</option>
-                    <option value="monitoring">Мониторинговый (Observation)</option>
-                    <option value="expert">Экспертный (VisitMedia/Custom)</option>
+                <label class="form-label">Коэффициент/Метрика <span class="text-danger">*</span></label>
+                <select class="form-select" id="widgetCoefficient" onchange="updateCoefficientInfo()">
+                    <option value="">Загрузка...</option>
                 </select>
                 <small class="form-text text-muted">
-                    • Статичный - фиксированные значения коэффициентов<br>
-                    • Мониторинговый - данные из наблюдений в визитах<br>
-                    • Экспертный - данные, внесенные экспертами
+                    Тип данных (MON/EXP/AI) будет выбираться на самом дашборде при просмотре
                 </small>
+                <div id="coefficientInfo" class="alert alert-info mt-2" style="display: none;"></div>
             </div>
-
-            <div id="dataSourceFields"></div>
 
             <div class="mb-3">
                 <label class="form-label">Уровень агрегации <span class="text-danger">*</span></label>
@@ -324,6 +765,9 @@ function updateWidgetForm() {
                 </select>
             </div>
         `;
+
+        // Загрузить все коэффициенты СРАЗУ
+        loadAllCoefficients();
     } else if (type === 'chart') {
         container.innerHTML = `
             <div class="mb-3">
@@ -377,108 +821,99 @@ function updateWidgetForm() {
     }
 }
 
-function updateDataSourceFields() {
-    const dataSource = document.getElementById('widgetDataSource')?.value;
-    const container = document.getElementById('dataSourceFields');
+// Хранилище всех коэффициентов
+let allCoefficients = [];
 
-    if (!container) return;
+// Загрузка ВСЕХ коэффициентов (без фильтрации по data_type)
+function loadAllCoefficients() {
+    const select = document.getElementById('widgetCoefficient');
+    if (!select) {
+        console.error('Select element not found');
+        return;
+    }
 
-    if (dataSource === 'static') {
-        // Статичные данные - выбор коэффициента
-        container.innerHTML = `
-            <div class="mb-3">
-                <label class="form-label">Коэффициент <span class="text-danger">*</span></label>
-                <select class="form-select" id="widgetCoefficient">
-                    <option value="">Выберите коэффициент...</option>
-                    ${allCoefficients.map(c => `<option value="${c.id}" data-unit="${c.unit || ''}">${c.name} (${c.code})</option>`).join('')}
-                </select>
-                <small class="form-text text-muted">Будет использовано статичное значение из коэффициента</small>
-            </div>
-        `;
-    } else if (dataSource === 'monitoring') {
-        // Мониторинговые данные - из наблюдений
-        container.innerHTML = `
-            <div class="mb-3">
-                <label class="form-label">Метрика <span class="text-danger">*</span></label>
-                <select class="form-select" id="widgetMetric">
-                    <option value="">Выберите метрику...</option>
-                    <option value="osa">Наличие товара (OSA)</option>
-                    <option value="price">Цена</option>
-                    <option value="promo">Промо-активность</option>
-                    <option value="shelf_share">Доля полки</option>
-                    <option value="facing_count">Количество фейсингов</option>
-                </select>
-                <small class="form-text text-muted">Данные будут собраны из наблюдений в визитах</small>
-            </div>
+    console.log('Loading coefficients...');
 
-            <div class="mb-3">
-                <label class="form-label">Фильтр по брендам</label>
-                <input type="text" class="form-control" id="widgetBrandFilter" placeholder="Оставьте пустым для всех брендов">
-                <small class="form-text text-muted">ID брендов через запятую, например: 1,2,3</small>
-            </div>
+    // Загружаем ВСЕ коэффициенты с сервера
+    fetch('/api/coefficients/')
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(coefficients => {
+            console.log('Loaded coefficients:', coefficients.length);
+            allCoefficients = coefficients;
 
-            <div class="mb-3">
-                <label class="form-label">Фильтр по категориям</label>
-                <input type="text" class="form-control" id="widgetCategoryFilter" placeholder="Оставьте пустым для всех категорий">
-                <small class="form-text text-muted">ID категорий через запятую</small>
-            </div>
-        `;
-    } else if (dataSource === 'expert') {
-        // Экспертные данные
-        container.innerHTML = `
-            <div class="mb-3">
-                <label class="form-label">Тип экспертных данных <span class="text-danger">*</span></label>
-                <select class="form-select" id="widgetExpertType">
-                    <option value="">Выберите тип...</option>
-                    <option value="visit_quality">Качество визита</option>
-                    <option value="outlet_rating">Рейтинг торговой точки</option>
-                    <option value="compliance">Соответствие стандартам</option>
-                    <option value="custom">Пользовательская метрика</option>
-                </select>
-            </div>
+            if (coefficients.length === 0) {
+                select.innerHTML = '<option value="">Нет доступных коэффициентов</option>';
+                return;
+            }
 
-            <div class="mb-3">
-                <label class="form-label">Формула расчета</label>
-                <textarea class="form-control" id="widgetFormula" rows="3" placeholder="Например: (score1 + score2) / 2"></textarea>
-                <small class="form-text text-muted">Оставьте пустым для простого подсчета</small>
-            </div>
+            // Заполняем select
+            select.innerHTML = '<option value="">Выберите коэффициент...</option>' +
+                coefficients.map(c => `
+                    <option value="${c.id}"
+                            data-unit="${c.unit || ''}"
+                            data-type="${c.value_type}"
+                            data-code="${c.code}"
+                            data-data-type="${c.data_type}"
+                            data-name="${c.name}">
+                        ${c.name} ${c.unit ? '(' + c.unit + ')' : ''} [${c.data_type}]
+                    </option>
+                `).join('');
+
+            console.log('Select populated successfully');
+        })
+        .catch(error => {
+            console.error('Error loading coefficients:', error);
+            select.innerHTML = '<option value="">Ошибка загрузки</option>';
+        });
+}
+
+// Показ информации о выбранном коэффициенте
+function updateCoefficientInfo() {
+    const select = document.getElementById('widgetCoefficient');
+    const infoDiv = document.getElementById('coefficientInfo');
+
+    if (!select || !infoDiv) return;
+
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption.value) {
+        const unit = selectedOption.dataset.unit || 'без единиц';
+        const type = selectedOption.dataset.type;
+        const code = selectedOption.dataset.code;
+
+        infoDiv.style.display = 'block';
+        infoDiv.innerHTML = `
+            <strong>Информация о коэффициенте:</strong><br>
+            Код: <code>${code}</code><br>
+            Тип значения: ${type === 'numeric' ? 'Числовое' : type === 'text' ? 'Текстовое' : 'Да/Нет'}<br>
+            Единица измерения: ${unit}
         `;
     } else {
-        container.innerHTML = '';
+        infoDiv.style.display = 'none';
     }
 }
 
 function saveWidget() {
     const type = document.getElementById('widgetType').value;
     const title = document.getElementById('widgetTitle')?.value;
-    const dataSource = document.getElementById('widgetDataSource')?.value;
+    const coefficientId = document.getElementById('widgetCoefficient')?.value;
 
-    if (!type || !title || !dataSource) {
-        alert('Заполните все обязательные поля');
+    if (!type || !title || !coefficientId) {
+        alert('Заполните все обязательные поля: тип виджета, название и коэффициент');
         return;
     }
 
     const widget = {
         type: type,
         title: title,
-        data_source: dataSource,
+        coefficient_id: parseInt(coefficientId),
         aggregation_level: document.getElementById('widgetAggregationLevel')?.value || 'global',
         aggregation: document.getElementById('widgetAggregation')?.value || 'avg',
         unit: document.getElementById('widgetUnit')?.value || '',
         color: document.getElementById('widgetColor')?.value || 'primary'
     };
-
-    // Добавить специфичные поля в зависимости от источника
-    if (dataSource === 'static') {
-        widget.coefficient_id = parseInt(document.getElementById('widgetCoefficient')?.value);
-    } else if (dataSource === 'monitoring') {
-        widget.metric = document.getElementById('widgetMetric')?.value;
-        widget.brand_filter = document.getElementById('widgetBrandFilter')?.value;
-        widget.category_filter = document.getElementById('widgetCategoryFilter')?.value;
-    } else if (dataSource === 'expert') {
-        widget.expert_type = document.getElementById('widgetExpertType')?.value;
-        widget.formula = document.getElementById('widgetFormula')?.value;
-    }
 
     if (type === 'chart') {
         widget.chart_type = document.getElementById('widgetChartType')?.value;
@@ -495,6 +930,7 @@ function saveWidget() {
     }
 
     renderWidgets();
+    updateConfigInput();
     bootstrap.Modal.getInstance(document.getElementById('widgetModal')).hide();
 }
 
@@ -514,13 +950,14 @@ function renderWidgets() {
         const typeIcon = widget.type === 'metric' ? '📊' : '📈';
         const typeName = widget.type === 'metric' ? 'Метрика' : 'График';
 
-        // Определить источник данных
-        const dataSourceLabels = {
-            'static': 'Статичный',
-            'monitoring': 'Мониторинговый',
-            'expert': 'Экспертный'
+        // Определить тип данных
+        const dataTypeLabels = {
+            'MON': 'Мониторинговые',
+            'EXP': 'Экспертные',
+            'AI': 'Данные ИИ'
         };
-        const dataSourceLabel = dataSourceLabels[widget.data_source] || widget.data_source;
+        const dataTypeLabel = dataTypeLabels[widget.data_type] || widget.data_type;
+        const dataTypeBadge = widget.data_type === 'MON' ? 'bg-primary' : widget.data_type === 'EXP' ? 'bg-success' : 'bg-info';
 
         // Определить уровень агрегации
         const aggLevelLabels = {
@@ -532,16 +969,8 @@ function renderWidgets() {
         };
         const aggLevelLabel = aggLevelLabels[widget.aggregation_level] || widget.aggregation_level;
 
-        // Получить детали в зависимости от источника
-        let detailsHtml = '';
-        if (widget.data_source === 'static') {
-            const coef = allCoefficients.find(c => c.id === widget.coefficient_id) || {name: 'Unknown', code: 'unknown'};
-            detailsHtml = `<strong>${coef.name}</strong> (${coef.code})`;
-        } else if (widget.data_source === 'monitoring') {
-            detailsHtml = `Метрика: <strong>${widget.metric || 'не указана'}</strong>`;
-        } else if (widget.data_source === 'expert') {
-            detailsHtml = `Тип: <strong>${widget.expert_type || 'не указан'}</strong>`;
-        }
+        // Получить информацию о коэффициенте
+        const coef = filteredCoefficients.find(c => c.id === widget.coefficient_id) || {name: 'Неизвестно', code: 'unknown'};
 
         return `
             <div class="card widget-card">
@@ -551,15 +980,16 @@ function renderWidgets() {
                             <h6 class="mb-1">
                                 ${typeIcon} ${widget.title}
                                 <span class="badge widget-badge bg-secondary">${typeName}</span>
+                                <span class="badge ${dataTypeBadge}">${dataTypeLabel}</span>
                             </h6>
                             <small class="text-muted">
-                                Источник: <strong>${dataSourceLabel}</strong><br>
-                                ${detailsHtml}<br>
+                                Коэффициент: <strong>${coef.name}</strong> ${coef.unit ? '(' + coef.unit + ')' : ''}<br>
+                                Код: <code>${coef.code}</code><br>
                                 Уровень: <strong>${aggLevelLabel}</strong><br>
                                 Агрегация: <strong>${widget.aggregation?.toUpperCase() || 'AVG'}</strong>
                             </small>
                             ${widget.type === 'metric' ? `
-                                <br><small class="text-muted">Единица: <strong>${widget.unit || '-'}</strong></small>
+                                <br><small class="text-muted">Единица: <strong>${widget.unit || coef.unit || '-'}</strong></small>
                             ` : `
                                 <br><small class="text-muted">
                                     График: <strong>${widget.chart_type === 'line' ? 'Линейный' : 'Столбчатый'}</strong>,
@@ -630,5 +1060,33 @@ function attachSubmitHandler() {
         console.error('❌ Dashboard form not found!');
     }
 }
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Dashboard form JavaScript loaded');
+
+    // Проверка наличия Bootstrap
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded!');
+    } else {
+        console.log('Bootstrap is available');
+    }
+
+    // Загрузить существующие виджеты если редактируем
+    {% if object and object.widgets_config %}
+    try {
+        const config = {{ object.widgets_config|safe }};
+        if (config && config.widgets) {
+            widgets = config.widgets;
+            renderWidgets();
+        }
+    } catch(e) {
+        console.error('Error loading widgets_config:', e);
+    }
+    {% endif %}
+
+    // Добавить обработчик отправки формы
+    attachSubmitHandler();
+});
 </script>
 {% endblock %}

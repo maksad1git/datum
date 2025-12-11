@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    GlobalMarket, Country, Region, Channel, Outlet,
+    GlobalMarket, Country, Region, City, District, Channel, Outlet,
     FootfallCounter, OutletInventory, Display, DisplayInventory
 )
 
@@ -77,11 +77,11 @@ class RegionAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Channel)
-class ChannelAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code', 'region', 'type', 'created_at']
-    list_filter = ['type', 'region__country', 'created_at']
-    search_fields = ['name', 'code', 'region__name']
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code', 'region', 'data_type', 'created_at']
+    list_filter = ['region', 'region__country', 'data_type', 'created_at']
+    search_fields = ['name', 'code', 'region__name', 'region__country__name']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['region', 'name']
     list_per_page = 25
@@ -89,7 +89,55 @@ class ChannelAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Basic Info', {
-            'fields': ('name', 'code', 'region', 'type')
+            'fields': ('name', 'code', 'region')
+        }),
+        ('Settings', {
+            'fields': ('data_type', 'geo_polygon', 'settings')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(District)
+class DistrictAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code', 'city', 'data_type', 'created_at']
+    list_filter = ['city', 'city__region', 'city__region__country', 'data_type', 'created_at']
+    search_fields = ['name', 'code', 'city__name', 'city__region__name']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['city', 'name']
+    list_per_page = 25
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('name', 'code', 'city')
+        }),
+        ('Settings', {
+            'fields': ('data_type', 'geo_polygon', 'settings')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Channel)
+class ChannelAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code', 'district', 'type', 'created_at']
+    list_filter = ['type', 'district__city__region__country', 'created_at']
+    search_fields = ['name', 'code', 'district__name', 'district__city__name']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['district', 'name']
+    list_per_page = 25
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('name', 'code', 'district', 'type')
         }),
         ('Details', {
             'fields': ('description', 'settings')
@@ -104,7 +152,7 @@ class ChannelAdmin(admin.ModelAdmin):
 @admin.register(Outlet)
 class OutletAdmin(admin.ModelAdmin):
     list_display = ['name', 'code', 'channel', 'status', 'contact_phone', 'created_at']
-    list_filter = ['status', 'channel__region__country', 'created_at']
+    list_filter = ['status', 'channel__district__city__region__country', 'created_at']
     search_fields = ['name', 'code', 'address', 'contact_person', 'contact_phone']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['channel', 'name']
@@ -135,7 +183,7 @@ class OutletAdmin(admin.ModelAdmin):
 @admin.register(FootfallCounter)
 class FootfallCounterAdmin(admin.ModelAdmin):
     list_display = ['outlet', 'timestamp', 'count', 'counted_by']
-    list_filter = ['outlet__channel__region', 'timestamp']
+    list_filter = ['outlet__channel__district__city__region', 'timestamp']
     search_fields = ['outlet__name']
     readonly_fields = ['timestamp']
     ordering = ['-timestamp']
@@ -146,7 +194,7 @@ class FootfallCounterAdmin(admin.ModelAdmin):
 @admin.register(OutletInventory)
 class OutletInventoryAdmin(admin.ModelAdmin):
     list_display = ['outlet', 'product', 'quantity', 'last_updated', 'updated_by']
-    list_filter = ['outlet__channel__region', 'outlet__channel', 'last_updated']
+    list_filter = ['outlet__channel__district__city__region', 'outlet__channel__district', 'last_updated']
     search_fields = ['outlet__name', 'product__name']
     readonly_fields = ['last_updated']
     ordering = ['outlet', 'product']
@@ -156,7 +204,7 @@ class OutletInventoryAdmin(admin.ModelAdmin):
 @admin.register(Display)
 class DisplayAdmin(admin.ModelAdmin):
     list_display = ['name', 'display_type', 'outlet', 'location', 'is_active']
-    list_filter = ['display_type', 'outlet__channel__region', 'is_active']
+    list_filter = ['display_type', 'outlet__channel__district__city__region', 'is_active']
     search_fields = ['name', 'outlet__name', 'location']
     ordering = ['outlet', 'name']
     list_per_page = 50
@@ -165,7 +213,7 @@ class DisplayAdmin(admin.ModelAdmin):
 @admin.register(DisplayInventory)
 class DisplayInventoryAdmin(admin.ModelAdmin):
     list_display = ['display', 'product', 'quantity', 'position', 'last_updated']
-    list_filter = ['display__outlet__channel__region', 'last_updated']
+    list_filter = ['display__outlet__channel__district__city__region', 'last_updated']
     search_fields = ['display__name', 'product__name']
     readonly_fields = ['last_updated']
     ordering = ['display', 'product']

@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.db.models import Avg, Count, Sum, Min, Max
 from django.utils import timezone
 from django.http import HttpResponse
@@ -13,7 +13,8 @@ from .models import Dashboard, Report, ReportTemplate, FilterPreset
 from .forms import DashboardForm, ReportForm, ReportTemplateForm, FilterPresetForm
 from visits.models import Visit, Observation
 from coefficients.models import Coefficient
-from geo.models import Region, Channel
+from geo.models import Country, Region, City, District, Channel, Outlet
+from catalog.models import AttributeGroup
 
 # WeasyPrint будет импортирован только при необходимости
 WEASYPRINT_AVAILABLE = False
@@ -59,12 +60,28 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
 
         for widget_config in config.get('widgets', []):
             try:
-                if widget_config['type'] == 'metric':
+                widget_type = widget_config.get('type')
+
+                # Метрика (одно число)
+                if widget_type == 'metric':
                     metric_data = self.calculate_metric(widget_config, filters)
                     widgets.append(metric_data)
-                elif widget_config['type'] == 'chart':
+
+                # Графики Chart.js (line, bar, pie, doughnut, radar, etc.)
+                elif widget_type in ['line', 'bar', 'horizontalBar', 'pie', 'doughnut', 'polarArea', 'radar']:
                     chart_data = self.calculate_chart(widget_config, filters)
                     widgets.append(chart_data)
+
+                # Таблица
+                elif widget_type == 'table':
+                    table_data = self.calculate_table(widget_config, filters)
+                    widgets.append(table_data)
+
+                # Старый формат: type='chart' с chart_type внутри
+                elif widget_type == 'chart':
+                    chart_data = self.calculate_chart(widget_config, filters)
+                    widgets.append(chart_data)
+
             except Exception as e:
                 # Пропустить виджеты с ошибками
                 widgets.append({
@@ -75,8 +92,12 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
 
         context['widgets'] = widgets
         context['filters'] = filters
+        context['countries'] = Country.objects.all()
         context['regions'] = Region.objects.all()
+        context['cities'] = City.objects.all()
+        context['districts'] = District.objects.all()
         context['channels'] = Channel.objects.all()
+        context['outlets'] = Outlet.objects.select_related('channel__district__city__region__country').all()
         return context
 
     def get_filters(self):
@@ -118,14 +139,22 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
             'period': period,
             'date_from': date_from,
             'date_to': date_to,
+            'country': self.request.GET.get('country'),
             'region': self.request.GET.get('region'),
+            'city': self.request.GET.get('city'),
+            'district': self.request.GET.get('district'),
             'channel': self.request.GET.get('channel'),
+            'outlet': self.request.GET.get('outlet'),
+            'data_type': self.request.GET.get('data_type', 'MON'),  # По умолчанию мониторинговые
         }
 
     def calculate_metric(self, config, filters):
         """Вычислить числовую метрику"""
         coefficient_id = config.get('coefficient_id')
         aggregation = config.get('aggregation', 'avg')
+
+        # ВАЖНО: Тип данных берется из фильтров (выбран пользователем на дашборде)
+        data_type = filters.get('data_type', 'MON')  # MON/EXP/AI
 
         # Базовый queryset с фильтрами
         queryset = Observation.objects.filter(
@@ -134,14 +163,34 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
         )
 
         # Применить дополнительные фильтры
+        if filters.get('country'):
+            queryset = queryset.filter(visit__outlet__channel__district__city__region__country_id=filters['country'])
         if filters.get('region'):
-            queryset = queryset.filter(visit__outlet__region_id=filters['region'])
+            queryset = queryset.filter(visit__outlet__channel__district__city__region_id=filters['region'])
+        if filters.get('city'):
+            queryset = queryset.filter(visit__outlet__channel__district__city_id=filters['city'])
+        if filters.get('district'):
+            queryset = queryset.filter(visit__outlet__channel__district_id=filters['district'])
         if filters.get('channel'):
             queryset = queryset.filter(visit__outlet__channel_id=filters['channel'])
+        if filters.get('outlet'):
+            queryset = queryset.filter(visit__outlet_id=filters['outlet'])
+
+        # Фильтр по атрибутам
+        if filters.get('attributes'):
+            for attr_code, attr_value in filters['attributes'].items():
+                if attr_value:
+                    queryset = queryset.filter(
+                        product__attribute_values__attribute__code=attr_code
+                    )
 
         # Фильтр по коэффициенту
         if coefficient_id:
             queryset = queryset.filter(coefficient_id=coefficient_id)
+
+        # ВАЖНО: Фильтр по типу источника данных
+        if data_type in ['MON', 'EXP', 'AI']:
+            queryset = queryset.filter(data_source_type=data_type)
 
         # Вычислить агрегацию
         value = 0
@@ -171,8 +220,12 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
     def calculate_chart(self, config, filters):
         """Подготовить данные для графика"""
         coefficient_id = config.get('coefficient_id')
-        chart_type = config.get('chart_type', 'line')
+        widget_type = config.get('type')
+        chart_type = config.get('chart_type', widget_type or 'line')
         group_by = config.get('group_by', 'date')
+
+        # ВАЖНО: Тип данных берется из фильтров (выбран пользователем на дашборде)
+        data_type = filters.get('data_type', 'MON')  # MON/EXP/AI
 
         # Базовый queryset
         queryset = Observation.objects.filter(
@@ -180,13 +233,33 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
             visit__start_date__lte=filters['date_to']
         )
 
+        if filters.get('country'):
+            queryset = queryset.filter(visit__outlet__channel__district__city__region__country_id=filters['country'])
         if filters.get('region'):
-            queryset = queryset.filter(visit__outlet__region_id=filters['region'])
+            queryset = queryset.filter(visit__outlet__channel__district__city__region_id=filters['region'])
+        if filters.get('city'):
+            queryset = queryset.filter(visit__outlet__channel__district__city_id=filters['city'])
+        if filters.get('district'):
+            queryset = queryset.filter(visit__outlet__channel__district_id=filters['district'])
         if filters.get('channel'):
             queryset = queryset.filter(visit__outlet__channel_id=filters['channel'])
+        if filters.get('outlet'):
+            queryset = queryset.filter(visit__outlet_id=filters['outlet'])
+
+        # Фильтр по атрибутам
+        if filters.get('attributes'):
+            for attr_code, attr_value in filters['attributes'].items():
+                if attr_value:
+                    queryset = queryset.filter(
+                        product__attribute_values__attribute__code=attr_code
+                    )
 
         if coefficient_id:
             queryset = queryset.filter(coefficient_id=coefficient_id)
+
+        # ВАЖНО: Фильтр по типу источника данных
+        if data_type in ['MON', 'EXP', 'AI']:
+            queryset = queryset.filter(data_source_type=data_type)
 
         labels = []
         values = []
@@ -202,30 +275,68 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
             labels = [item['date'].strftime('%d.%m') for item in data]
             values = [float(item['avg_value']) if item['avg_value'] else 0 for item in data]
 
+        # Группировка по неделям
+        elif group_by == 'week':
+            data = queryset.extra(
+                select={'week': "DATE_FORMAT(created_at, '%%Y-%%u')"}
+            ).values('week').annotate(
+                avg_value=Avg('value_numeric')
+            ).order_by('week')[:12]
+
+            labels = [f"Неделя {item['week']}" for item in data]
+            values = [float(item['avg_value']) if item['avg_value'] else 0 for item in data]
+
+        # Группировка по месяцам
+        elif group_by == 'month':
+            data = queryset.extra(
+                select={'month': "DATE_FORMAT(created_at, '%%Y-%%m')"}
+            ).values('month').annotate(
+                avg_value=Avg('value_numeric')
+            ).order_by('month')[:12]
+
+            labels = [item['month'] for item in data]
+            values = [float(item['avg_value']) if item['avg_value'] else 0 for item in data]
+
         # Группировка по регионам
         elif group_by == 'region':
+            max_segments = config.get('max_segments', 10)
             data = queryset.select_related(
-                'visit__outlet__region'
+                'visit__outlet__channel__district__city__region'
             ).values(
-                'visit__outlet__region__name'
+                'visit__outlet__channel__district__city__region__name'
             ).annotate(
                 avg_value=Avg('value_numeric')
-            ).order_by('-avg_value')[:10]
+            ).order_by('-avg_value')[:max_segments]
 
-            labels = [item['visit__outlet__region__name'] or 'Без региона' for item in data]
+            labels = [item['visit__outlet__channel__district__city__region__name'] or 'Без региона' for item in data]
             values = [float(item['avg_value']) if item['avg_value'] else 0 for item in data]
 
         # Группировка по каналам
         elif group_by == 'channel':
+            max_segments = config.get('max_segments', 10)
             data = queryset.select_related(
                 'visit__outlet__channel'
             ).values(
                 'visit__outlet__channel__name'
             ).annotate(
                 avg_value=Avg('value_numeric')
-            ).order_by('-avg_value')[:10]
+            ).order_by('-avg_value')[:max_segments]
 
             labels = [item['visit__outlet__channel__name'] or 'Без канала' for item in data]
+            values = [float(item['avg_value']) if item['avg_value'] else 0 for item in data]
+
+        # Группировка по торговым точкам
+        elif group_by == 'outlet':
+            max_segments = config.get('max_segments', 10)
+            data = queryset.select_related(
+                'visit__outlet'
+            ).values(
+                'visit__outlet__name'
+            ).annotate(
+                avg_value=Avg('value_numeric')
+            ).order_by('-avg_value')[:max_segments]
+
+            labels = [item['visit__outlet__name'] or 'Без точки' for item in data]
             values = [float(item['avg_value']) if item['avg_value'] else 0 for item in data]
 
         return {
@@ -236,6 +347,288 @@ class DashboardDetailView(LoginRequiredMixin, DetailView):
             'values': json.dumps(values),
             'color': config.get('color', 'rgba(75, 192, 192, 0.8)'),
         }
+
+    def calculate_table(self, config, filters):
+        """Подготовить данные для таблицы"""
+        coefficient_id = config.get('coefficient_id')
+        group_by = config.get('group_by', 'outlet')
+        row_limit = config.get('row_limit', 10)
+        sort_order = config.get('sort', 'desc')
+
+        # ВАЖНО: Тип данных берется из фильтров
+        data_type = filters.get('data_type', 'MON')
+
+        # Базовый queryset
+        queryset = Observation.objects.filter(
+            visit__start_date__gte=filters['date_from'],
+            visit__start_date__lte=filters['date_to']
+        )
+
+        if filters.get('country'):
+            queryset = queryset.filter(visit__outlet__channel__district__city__region__country_id=filters['country'])
+        if filters.get('region'):
+            queryset = queryset.filter(visit__outlet__channel__district__city__region_id=filters['region'])
+        if filters.get('city'):
+            queryset = queryset.filter(visit__outlet__channel__district__city_id=filters['city'])
+        if filters.get('district'):
+            queryset = queryset.filter(visit__outlet__channel__district_id=filters['district'])
+        if filters.get('channel'):
+            queryset = queryset.filter(visit__outlet__channel_id=filters['channel'])
+        if filters.get('outlet'):
+            queryset = queryset.filter(visit__outlet_id=filters['outlet'])
+
+        # Фильтр по атрибутам
+        if filters.get('attributes'):
+            for attr_code, attr_value in filters['attributes'].items():
+                if attr_value:
+                    queryset = queryset.filter(
+                        product__attribute_values__attribute__code=attr_code
+                    )
+
+        if coefficient_id:
+            queryset = queryset.filter(coefficient_id=coefficient_id)
+
+        if data_type in ['MON', 'EXP', 'AI']:
+            queryset = queryset.filter(data_source_type=data_type)
+
+        # Получить данные
+        rows = []
+        order_by_clause = '-avg_value' if sort_order == 'desc' else 'avg_value'
+
+        if group_by == 'outlet':
+            data = queryset.select_related(
+                'visit__outlet'
+            ).values(
+                'visit__outlet__name', 'visit__outlet__code'
+            ).annotate(
+                avg_value=Avg('value_numeric'),
+                count=Count('id')
+            ).order_by(order_by_clause)[:row_limit]
+
+            rows = [
+                {
+                    'name': item['visit__outlet__name'] or 'Без названия',
+                    'code': item['visit__outlet__code'] or '-',
+                    'value': round(float(item['avg_value']), 2) if item['avg_value'] else 0,
+                    'count': item['count']
+                }
+                for item in data
+            ]
+
+        elif group_by == 'region':
+            data = queryset.select_related(
+                'visit__outlet__channel__district__city__region'
+            ).values(
+                'visit__outlet__channel__district__city__region__name'
+            ).annotate(
+                avg_value=Avg('value_numeric'),
+                count=Count('id')
+            ).order_by(order_by_clause)[:row_limit]
+
+            rows = [
+                {
+                    'name': item['visit__outlet__channel__district__city__region__name'] or 'Без региона',
+                    'value': round(float(item['avg_value']), 2) if item['avg_value'] else 0,
+                    'count': item['count']
+                }
+                for item in data
+            ]
+
+        elif group_by == 'channel':
+            data = queryset.select_related(
+                'visit__outlet__channel'
+            ).values(
+                'visit__outlet__channel__name'
+            ).annotate(
+                avg_value=Avg('value_numeric'),
+                count=Count('id')
+            ).order_by(order_by_clause)[:row_limit]
+
+            rows = [
+                {
+                    'name': item['visit__outlet__channel__name'] or 'Без канала',
+                    'value': round(float(item['avg_value']), 2) if item['avg_value'] else 0,
+                    'count': item['count']
+                }
+                for item in data
+            ]
+
+        elif group_by == 'date':
+            data = queryset.extra(
+                select={'date': "DATE(created_at)"}
+            ).values('date').annotate(
+                avg_value=Avg('value_numeric'),
+                count=Count('id')
+            ).order_by(order_by_clause)[:row_limit]
+
+            rows = [
+                {
+                    'name': item['date'].strftime('%d.%m.%Y'),
+                    'value': round(float(item['avg_value']), 2) if item['avg_value'] else 0,
+                    'count': item['count']
+                }
+                for item in data
+            ]
+
+        return {
+            'type': 'table',
+            'title': config.get('title', 'Таблица'),
+            'rows': rows,
+            'group_by': group_by,
+        }
+
+
+class MultiLevelDashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Мультиуровневый дашборд с горизонтальным переключателем уровней:
+    - Динамически загружает все дашборды с заполненным полем level из БД
+    - Автоматически добавляет/удаляет уровни при изменении дашбордов
+    """
+    template_name = 'analytics/multilevel_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Получить все активные дашборды с уровнями из БД
+        level_dashboards = Dashboard.objects.filter(
+            is_active=True,
+            level__isnull=False
+        ).exclude(level='').order_by('level_order')
+
+        # Если нет дашбордов с уровнями, показать ошибку
+        if not level_dashboards.exists():
+            context['error'] = 'Нет доступных дашбордов с уровнями'
+            context['widgets'] = []
+            return context
+
+        # Получить текущий уровень из GET-параметра
+        level = self.request.GET.get('level')
+
+        # Если уровень не указан, взять первый доступный
+        if not level:
+            dashboard = level_dashboards.first()
+            level = dashboard.level
+        else:
+            # Найти дашборд для выбранного уровня
+            try:
+                dashboard = level_dashboards.get(level=level)
+            except Dashboard.DoesNotExist:
+                # Если дашборд для этого уровня не найден, взять первый
+                dashboard = level_dashboards.first()
+                level = dashboard.level
+
+        context['level'] = level
+        context['dashboard'] = dashboard
+        context['level_dashboards'] = level_dashboards  # Все доступные дашборды для переключателя
+
+        # Получить фильтры
+        filters = self.get_filters()
+        context['filters'] = filters
+
+        # Данные для селекторов
+        context['countries'] = Country.objects.all()
+        context['regions'] = Region.objects.all()
+        context['cities'] = City.objects.all()
+        context['districts'] = District.objects.all()
+        context['channels'] = Channel.objects.all()
+        context['outlets'] = Outlet.objects.select_related('channel__district__city__region__country').all()
+
+        # Загрузить группы атрибутов для фильтрации
+        context['attribute_groups'] = AttributeGroup.objects.prefetch_related(
+            'attributes'
+        ).filter(
+            attributes__is_filterable=True
+        ).distinct().order_by('order')
+
+        # Вычислить виджеты дашборда
+        widgets_config = dashboard.widgets_config if dashboard.widgets_config else {}
+        widgets = []
+
+        for widget_config in widgets_config.get('widgets', []):
+            try:
+                widget_type = widget_config.get('type')
+
+                if widget_type == 'metric':
+                    widget_data = self.calculate_metric(widget_config, filters)
+                    widgets.append(widget_data)
+                elif widget_type == 'chart':
+                    widget_data = self.calculate_chart(widget_config, filters)
+                    widgets.append(widget_data)
+                elif widget_type == 'table':
+                    widget_data = self.calculate_table(widget_config, filters)
+                    widgets.append(widget_data)
+            except Exception as e:
+                widgets.append({
+                    'type': 'error',
+                    'title': widget_config.get('title', 'Виджет'),
+                    'error': str(e)
+                })
+
+        context['widgets'] = widgets
+        return context
+
+    def get_filters(self):
+        """Получить и обработать фильтры"""
+        period = self.request.GET.get('period', 'month')
+        now = timezone.now()
+
+        # Вычислить даты на основе периода
+        if period == 'today':
+            date_from = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            date_to = now
+        elif period == 'yesterday':
+            date_from = (now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            date_to = date_from.replace(hour=23, minute=59, second=59)
+        elif period == 'week':
+            date_from = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+            date_to = now
+        elif period == 'last_week':
+            date_from = (now - timedelta(days=now.weekday() + 7)).replace(hour=0, minute=0, second=0, microsecond=0)
+            date_to = date_from + timedelta(days=6, hours=23, minutes=59, seconds=59)
+        elif period == 'custom':
+            date_from_str = self.request.GET.get('date_from')
+            date_to_str = self.request.GET.get('date_to')
+            if date_from_str and date_to_str:
+                date_from = timezone.make_aware(timezone.datetime.strptime(date_from_str, '%Y-%m-%d'))
+                date_to = timezone.make_aware(timezone.datetime.strptime(date_to_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59))
+            else:
+                date_from = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                date_to = now
+        else:
+            date_from = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            date_to = now
+
+        # Получить фильтры по уровню
+        level = self.request.GET.get('level', 'country')
+        entity_id = self.request.GET.get('entity_id')
+
+        # Получить фильтры по атрибутам (все параметры, начинающиеся с 'attr_')
+        attribute_filters = {}
+        for key, value in self.request.GET.items():
+            if key.startswith('attr_') and value:
+                attr_code = key[5:]  # Убрать префикс 'attr_'
+                attribute_filters[attr_code] = value
+
+        return {
+            'period': period,
+            'date_from': date_from,
+            'date_to': date_to,
+            'level': level,
+            'country': entity_id if level == 'country' else None,
+            'region': entity_id if level == 'region' else None,
+            'city': entity_id if level == 'city' else None,
+            'district': entity_id if level == 'district' else None,
+            'channel': entity_id if level == 'channel' else None,
+            'outlet': entity_id if level == 'outlet' else None,
+            'data_type': self.request.GET.get('data_type', 'MON'),
+            'attributes': attribute_filters,
+        }
+
+    # Используем те же методы calculate_metric, calculate_chart, calculate_table
+    # что и в DashboardDetailView
+    calculate_metric = DashboardDetailView.calculate_metric
+    calculate_chart = DashboardDetailView.calculate_chart
+    calculate_table = DashboardDetailView.calculate_table
 
 
 class DashboardCreateView(LoginRequiredMixin, CreateView):
