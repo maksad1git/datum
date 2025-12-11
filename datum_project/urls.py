@@ -32,7 +32,9 @@ urlpatterns = [
     path('api/v1/geo/', include('geo.api_urls')),
     path('api/v1/catalog/', include('catalog.api_urls')),
     path('api/v1/users/', include('users.api_urls')),
-    # TODO: Add visits, analytics, coefficients, forms, integrations APIs
+    path('api/v1/visits/', include('visits.api_urls')),
+    path('api/v1/analytics/', include('analytics.api_urls')),
+    # TODO: Add coefficients, forms, integrations, core APIs later
 
     # AJAX API (legacy - will be replaced by REST API)
     path('api/', include('api.urls')),
