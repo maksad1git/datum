@@ -8,6 +8,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from core import views as core_views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     # Главная страница
@@ -23,8 +24,18 @@ urlpatterns = [
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
 
-    # Приложения
+    # JWT Authentication
+    path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # REST API endpoints
+    path('api/v1/geo/', include('geo.api_urls')),
+    # TODO: Add other apps API URLs
+
+    # AJAX API (legacy - will be replaced by REST API)
     path('api/', include('api.urls')),
+
+    # Traditional Django views (will be deprecated after Vue migration)
     path('users/', include('users.urls')),
     path('geo/', include('geo.urls')),
     path('catalog/', include('catalog.urls')),

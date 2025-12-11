@@ -43,7 +43,12 @@
       "Bash(copy region_confirm_delete.html city_confirm_delete.html)",
       "Bash(copy:*)",
       "Bash(copy region_form.html district_form.html)",
-      "Bash(copy region_confirm_delete.html district_confirm_delete.html)"
+      "Bash(copy region_confirm_delete.html district_confirm_delete.html)",
+      "Bash(npm create:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm exec:*)"
     ],
     "deny": [],
     "ask": []
