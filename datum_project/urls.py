@@ -28,13 +28,16 @@ urlpatterns = [
     path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    # REST API endpoints
+    # REST API endpoints (ALL 44 models!)
     path('api/v1/geo/', include('geo.api_urls')),
     path('api/v1/catalog/', include('catalog.api_urls')),
     path('api/v1/users/', include('users.api_urls')),
     path('api/v1/visits/', include('visits.api_urls')),
     path('api/v1/analytics/', include('analytics.api_urls')),
-    # TODO: Add coefficients, forms, integrations, core APIs later
+    path('api/v1/coefficients/', include('coefficients.api_urls')),
+    path('api/v1/forms/', include('forms.api_urls')),
+    path('api/v1/integrations/', include('integrations.api_urls')),
+    path('api/v1/core/', include('core.api_urls'))
 
     # AJAX API (legacy - will be replaced by REST API)
     path('api/', include('api.urls')),
