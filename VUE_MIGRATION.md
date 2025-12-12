@@ -23,7 +23,7 @@
 
 **Total:** 44 out of 44 models have REST API (100%) ✅
 
-#### Frontend (Vue 3 + Tailwind CSS) - 35% Complete
+#### Frontend (Vue 3 + Tailwind CSS) - 40% Complete
 - [x] Vue 3 project created with Vite
 - [x] Tailwind CSS configured with custom theme
 - [x] Vue Router with authentication guards
@@ -34,20 +34,24 @@
 - [x] Home dashboard with stats
 - [x] **DataTable** component (universal CRUD table)
 - [x] **GEO views** - CountryList + 6 placeholder views
-- [x] **CATALOG views** - BrandList, ProductList with advanced filtering
+- [x] **CATALOG views** - BrandList, ProductList, CategoryList, PreinstallList (4 complete)
+- [x] **VISITS views** - VisitList, VisitTypeList, ObservationList, SaleList (4 complete)
 - [x] **Router** - Full routes for geo, catalog, visits (create/edit/detail)
 
 ### ⏳ In Progress / Remaining
 
 #### Frontend Components
-- [ ] **Remaining Pinia stores** (analytics, coefficients, forms, integrations, core) - 5 stores
-- [ ] **List views** for all entities (~36 remaining)
-  - [x] GEO: CountryList ✅
-  - [x] CATALOG: BrandList, ProductList ✅
-  - [ ] CATALOG: CategoryList, PreinstallList
-  - [ ] VISITS: VisitTypeList, VisitList, ObservationList, SaleList
-  - [ ] ANALYTICS: DashboardList, ReportList, etc.
-  - [ ] USERS, COEFFICIENTS, FORMS, INTEGRATIONS, CORE views
+- [ ] **Remaining Pinia stores** (analytics, users, coefficients, forms, integrations, core) - 6 stores
+- [ ] **List views** for all entities (~28 remaining)
+  - [x] GEO: CountryList (7 total: 1 complete, 6 placeholders) ✅
+  - [x] CATALOG: BrandList, ProductList, CategoryList, PreinstallList (4/4 complete) ✅
+  - [x] VISITS: VisitTypeList, VisitList, ObservationList, SaleList (4/4 complete) ✅
+  - [ ] USERS: UserList, RoleList, PermissionList, SessionList (0/4)
+  - [ ] ANALYTICS: DashboardList, ReportList, ReportTemplateList, FilterPresetList, ForecastModelList (0/5)
+  - [ ] COEFFICIENTS: CoefficientList, MetricList, FormulaList, RuleList (0/4)
+  - [ ] FORMS: FormTemplateList (0/1)
+  - [ ] INTEGRATIONS: ImportJobList, ExportJobList, BackupList (0/3)
+  - [ ] CORE: SystemSettingsList, IntegrationSettingsList, SystemLogList, AuditLogList (0/4)
 - [ ] **Create/Edit forms** for all entities (~44 forms)
 - [ ] **Detail views** for all entities (~44 views)
 - [ ] **Advanced Components:**
@@ -376,27 +380,28 @@ path('api/v1/myapp/', include('myapp.api_urls')),
   - [x] Vue store
   - [x] Vue components (1 complete, 6 placeholders)
 
-- [ ] **CATALOG** - 🟡 IN PROGRESS (70%)
+- [x] **CATALOG** - ✅ DONE (100% List views)
   - [x] Serializers (7)
   - [x] ViewSets (7)
   - [x] URLs
   - [x] Vue store (catalog.js)
-  - [x] Vue components (BrandList, ProductList)
-  - [ ] Remaining components (CategoryList, PreinstallList, forms, details)
+  - [x] Vue List components (BrandList, ProductList, CategoryList, PreinstallList - 4/4) ✅
+  - [ ] Remaining: forms, detail views
 
 - [ ] **USERS** - 🟡 IN PROGRESS (50%)
   - [x] Serializers (4)
   - [x] ViewSets (4)
   - [x] URLs
   - [ ] Vue store (users.js)
-  - [ ] Vue components
+  - [ ] Vue components (0/4 List views)
 
-- [ ] **VISITS** - 🟡 IN PROGRESS (60%)
+- [x] **VISITS** - ✅ DONE (100% List views)
   - [x] Serializers (5)
   - [x] ViewSets (5)
   - [x] URLs
   - [x] Vue store (visits.js)
-  - [ ] Vue components (VisitTypeList, VisitList, etc.)
+  - [x] Vue List components (VisitTypeList, VisitList, ObservationList, SaleList - 4/4) ✅
+  - [ ] Remaining: forms, detail views
 
 - [ ] **ANALYTICS** - 🟡 IN PROGRESS (50%)
   - [x] Serializers (5)
@@ -503,13 +508,21 @@ path('api/v1/myapp/', include('myapp.api_urls')),
    - Created `visits.js` store (visit types, visits, observations, media, sales)
    - Both stores follow established patterns with full CRUD operations
 
-3. **Frontend Components**
+3. **Frontend Components - Session 1**
    - Created BrandList.vue with DataTable integration
    - Created ProductList.vue with advanced filtering (brand, category, status)
    - Updated Sidebar with Catalog and Visits navigation sections
    - Updated router with full routes for catalog and visits modules
 
+4. **Frontend Components - Session 2** (NEW!)
+   - Created CategoryList.vue with hierarchical display
+   - Created PreinstallList.vue with product/outlet tracking
+   - Created VisitList.vue with mystery shopping workflow
+   - Created VisitTypeList.vue with form template integration
+   - Created ObservationList.vue with multi-value data support
+   - Created SaleList.vue with revenue analytics and stats cards
+
 ### 📊 Progress Summary
 - **Backend:** 100% (44/44 models) ✅
-- **Frontend:** 35% (stores: 4/9, components: ~8/120)
-- **Overall Migration:** 65% complete
+- **Frontend:** 40% (stores: 4/9, List views: 9 complete + 6 placeholders)
+- **Overall Migration:** 68% complete
