@@ -64,6 +64,80 @@
             </router-link>
           </div>
         </div>
+
+        <!-- Catalog Section -->
+        <div class="pt-4">
+          <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Catalog
+          </h3>
+          <div class="mt-2 space-y-1">
+            <router-link
+              to="/catalog/brands"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/catalog/brands') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Brands
+            </router-link>
+            <router-link
+              to="/catalog/categories"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/catalog/categories') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Categories
+            </router-link>
+            <router-link
+              to="/catalog/products"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/catalog/products') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Products
+            </router-link>
+            <router-link
+              to="/catalog/preinstalls"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/catalog/preinstalls') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Preinstalls
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Visits Section -->
+        <div class="pt-4">
+          <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Visits
+          </h3>
+          <div class="mt-2 space-y-1">
+            <router-link
+              to="/visits/visit-types"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/visits/visit-types') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Visit Types
+            </router-link>
+            <router-link
+              to="/visits/visits"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/visits/visits') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Visits
+            </router-link>
+            <router-link
+              to="/visits/observations"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/visits/observations') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Observations
+            </router-link>
+            <router-link
+              to="/visits/sales"
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-md transition"
+              :class="isActive('/visits/sales') ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              Sales
+            </router-link>
+          </div>
+        </div>
       </div>
     </nav>
   </aside>
